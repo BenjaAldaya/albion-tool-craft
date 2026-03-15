@@ -1,0 +1,567 @@
+/**
+ * Clase para gestionar la interfaz de usuario
+ */
+class UIManager {
+    constructor() {
+        this.currentCalculator = null;
+        this.currentItem = null;
+        this.api = new AlbionAPI();
+        this.sessionManager = new SessionManager();
+    }
+
+    /**
+     * Inicializa la interfaz de usuario
+     */
+    initialize() {
+        this._setupEventListeners();
+        this._loadSavedConfiguration();
+    }
+
+    /**
+     * Configura los event listeners
+     * @private
+     */
+    _setupEventListeners() {
+        // Evento de cálculo
+        const calculateBtn = document.getElementById('calculate');
+        if (calculateBtn) {
+            calculateBtn.addEventListener('click', () => this.calculate());
+        }
+
+        // Evento de carga de precios desde API
+        const loadPricesBtn = document.getElementById('loadPricesBtn');
+        if (loadPricesBtn) {
+            loadPricesBtn.addEventListener('click', () => this.loadPricesFromAPI());
+        }
+
+        // Evento de guardar sesión
+        const saveSessionBtn = document.getElementById('saveSessionFromResult');
+        if (saveSessionBtn) {
+            saveSessionBtn.addEventListener('click', () => this.saveCurrentSession());
+        }
+
+        // Auto-calcular cuando cambien valores
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (this.currentCalculator) {
+                    this.calculate();
+                }
+            });
+        });
+    }
+
+    /**
+     * Carga la configuración guardada
+     * @private
+     */
+    _loadSavedConfiguration() {
+        // Implementar si se desea cargar última configuración
+    }
+
+    /**
+     * Obtiene los valores del formulario
+     * @returns {Object}
+     */
+    getFormValues() {
+        return {
+            itemType: document.getElementById('itemType')?.value || 'PICKAXE',
+            tier: parseInt(document.getElementById('tier')?.value) || 4,
+            quality: parseInt(document.getElementById('quality')?.value) || 1,
+            enchantment: parseInt(document.getElementById('enchantment')?.value) || 0,
+            quantity: parseInt(document.getElementById('quantity')?.value) || 1,
+            returnRate: parseFloat(document.getElementById('returnRate')?.value) / 100 || 0.48,
+            taxRate: parseFloat(document.getElementById('taxRate')?.value) || 350,
+            journalBuyPrice: parseFloat(document.getElementById('journalBuyPrice')?.value) || 0,
+            journalSellPrice: parseFloat(document.getElementById('journalSellPrice')?.value) || 0,
+            city: document.getElementById('citySelector')?.value || 'Caerleon'
+        };
+    }
+
+    /**
+     * Obtiene los precios de materiales del formulario
+     * @returns {Object}
+     */
+    getMaterialPrices() {
+        return {
+            planks: parseFloat(document.getElementById('planksPrice')?.value) || 0,
+            bars: parseFloat(document.getElementById('barsPrice')?.value) || 0,
+            leather: parseFloat(document.getElementById('leatherPrice')?.value) || 0,
+            cloth: parseFloat(document.getElementById('clothPrice')?.value) || 0,
+            artifact: parseFloat(document.getElementById('artifactPrice')?.value) || 0,
+            itemPrice: parseFloat(document.getElementById('itemPrice')?.value) || 0
+        };
+    }
+
+    /**
+     * Crea el item según la configuración
+     * @param {Object} config
+     * @returns {Item}
+     */
+    createItem(config) {
+        const { itemType, tier, quality, enchantment } = config;
+
+        // Determinar si es herramienta o arma
+        if (AlbionConfig.TOOL_RECIPES[itemType]) {
+            return new Tool(itemType, tier, quality, enchantment);
+        } else if (AlbionConfig.WEAPON_RECIPES[itemType]) {
+            return new Weapon(itemType, tier, quality, enchantment);
+        } else {
+            throw new Error(`Tipo de item desconocido: ${itemType}`);
+        }
+    }
+
+    /**
+     * Actualiza los precios del item
+     * @param {Item} item
+     * @param {Object} prices
+     */
+    updateItemPrices(item, prices) {
+        item.setPrice(prices.itemPrice);
+
+        if (item instanceof Tool) {
+            item.updateMaterialPrices(prices.planks, prices.bars);
+        } else if (item instanceof Weapon) {
+            item.updateMaterialPrices(prices);
+        }
+    }
+
+    /**
+     * Realiza el cálculo de profit
+     */
+    calculate() {
+        try {
+            const config = this.getFormValues();
+            const prices = this.getMaterialPrices();
+
+            // Validar que se hayan ingresado precios
+            if (prices.itemPrice === 0) {
+                this.hideResults();
+                return;
+            }
+
+            // Crear item
+            this.currentItem = this.createItem(config);
+            this.updateItemPrices(this.currentItem, prices);
+
+            // Crear calculador
+            this.currentCalculator = new CraftingCalculator(
+                this.currentItem,
+                config.quantity,
+                config.returnRate,
+                config.taxRate
+            );
+
+            // Configurar journal manager si hay precios
+            if (config.journalBuyPrice > 0 && config.journalSellPrice > 0) {
+                const journalManager = new JournalManager(config.tier);
+                journalManager.setBuyPrice(config.journalBuyPrice);
+                journalManager.setSellPrice(config.journalSellPrice);
+                this.currentCalculator.setJournalManager(journalManager);
+            }
+
+            // Generar análisis
+            const analysis = this.currentCalculator.generateFullAnalysis();
+
+            // Mostrar resultados
+            this.displayResults(analysis);
+
+            // Guardar precios en cache para reutilizar en otros items del mismo tier/enchant/ciudad
+            if (typeof savePriceCache === 'function') savePriceCache();
+
+        } catch (error) {
+            console.error('Error al calcular:', error);
+            this.showToast('❌ Error', error.message);
+        }
+    }
+
+    /**
+     * Muestra los resultados en la interfaz
+     * @param {Object} analysis
+     */
+    displayResults(analysis) {
+        // Mostrar sección de resultados
+        const resultsSection = document.getElementById('results');
+        if (resultsSection) {
+            resultsSection.style.display = 'block';
+        }
+
+        // Actualizar información del item
+        this._updateItemInfo(analysis.item);
+
+        // Actualizar materiales
+        this._updateMaterialsInfo(analysis.materials, analysis.configuration);
+
+        // Actualizar costos
+        this._updateCostsInfo(analysis.costs);
+
+        // Actualizar ingresos
+        this._updateRevenueInfo(analysis.revenue);
+
+        // Actualizar journals
+        if (analysis.journals) {
+            this._updateJournalsInfo(analysis.journals);
+        }
+
+        // Actualizar profit final
+        this._updateProfitInfo(analysis.profit);
+
+        // Mostrar recomendaciones
+        const recommendations = this.currentCalculator.getRecommendations();
+        this._displayRecommendations(recommendations);
+    }
+
+    /**
+     * Actualiza la información del item
+     * @param {Object} itemData
+     * @private
+     */
+    _updateItemInfo(itemData) {
+        const itemNameEl = document.getElementById('itemName');
+        if (itemNameEl) {
+            itemNameEl.textContent = itemData.displayName;
+        }
+    }
+
+    /**
+     * Actualiza la información de materiales
+     * @param {Object} materials
+     * @param {Object} config
+     * @private
+     */
+    _updateMaterialsInfo(materials, config) {
+        const RENDER_URL = 'https://render.albiononline.com/v1/item';
+        const MAT_META = {
+            LEATHER:  { name: 'Cuero',     icon: '🦌' },
+            METALBAR: { name: 'Lingotes',  icon: '⚒️' },
+            PLANKS:   { name: 'Madera',    icon: '🪵' },
+            CLOTH:    { name: 'Tela',      icon: '🧵' },
+            artifact: { name: 'Artefacto', icon: '🔮' }
+        };
+
+        const container = document.getElementById('shoppingList');
+        if (!container) return;
+        container.innerHTML = '';
+
+        Object.entries(materials.toBuy).forEach(([type, material]) => {
+            if (material.quantity <= 0) return;
+
+            const meta = MAT_META[type] || { name: type, icon: '📦' };
+            const enchSuffix = material.enchantment > 0 ? `.${material.enchantment}` : '';
+            const label = `T${material.tier}${enchSuffix} ${meta.name}`;
+            // El render usa _LEVEL{N}, el API de precios usa @{N} — convertir
+            const renderName = material.apiName.replace(/@(\d)$/, '_LEVEL$1');
+            const imgSrc = `${RENDER_URL}/${renderName}.png?quality=1&size=80`;
+            const unitPrice = material.price > 0 ? material.price.toLocaleString() : '—';
+            const totalCost = material.price > 0
+                ? (material.price * material.quantity).toLocaleString() + ' 🪙'
+                : 'Sin precio';
+
+            const row = document.createElement('tr');
+            row.style.cssText = 'border-bottom:1px solid rgba(255,255,255,0.06);';
+            row.innerHTML = `
+                <td style="padding:7px 8px;width:32px;">
+                    <img src="${imgSrc}" width="28" height="28"
+                         style="image-rendering:pixelated;border-radius:4px;display:block;"
+                         onerror="this.style.display='none'">
+                </td>
+                <td style="padding:7px 8px;">
+                    <span style="color:#f0c040;font-size:0.88rem;font-weight:600;">${meta.name}</span>
+                    <span style="color:rgba(255,255,255,0.45);font-size:0.75rem;margin-left:5px;">${label}</span>
+                </td>
+                <td style="padding:7px 8px;text-align:right;font-weight:700;color:#f0c040;font-size:0.95rem;">${material.quantity.toLocaleString()}</td>
+                <td style="padding:7px 8px;text-align:right;color:rgba(255,255,255,0.7);font-size:0.82rem;">${unitPrice}</td>
+                <td style="padding:7px 8px;text-align:right;font-weight:600;color:#a0d080;font-size:0.85rem;">${totalCost}</td>`;
+            container.appendChild(row);
+        });
+
+        if (container.children.length === 0) {
+            container.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:rgba(255,255,255,0.4);font-size:0.85rem;">Sin materiales</td></tr>';
+        }
+
+        // Mostrar sobrante estimado tras completar todos los crafteos
+        const excessContainer = document.getElementById('excessInfo');
+        if (!excessContainer || !materials.excess || !materials.needed) return;
+
+        const excessParts = [];
+        let canCraftOneMore = true;
+
+        Object.entries(materials.excess).forEach(([type, mat]) => {
+            if (mat.quantity <= 0) return;
+            const meta = MAT_META[type] || { name: type, icon: '📦' };
+            const neededMat = materials.needed[type];
+            const basePerItem = neededMat ? neededMat.quantity / config.quantity : Infinity;
+            const enough = mat.quantity >= basePerItem;
+            if (!enough) canCraftOneMore = false;
+            excessParts.push(`${mat.quantity.toLocaleString()} ${meta.name}`);
+        });
+
+        if (excessParts.length > 0) {
+            const icon = canCraftOneMore ? '✅' : 'ℹ️';
+            const msg = canCraftOneMore
+                ? 'El sobrante alcanza para <strong>1 crafteo más</strong>'
+                : 'El sobrante <strong>no alcanza</strong> para otro crafteo';
+            excessContainer.innerHTML = `
+                <span class="text-muted small">${icon} Sobrante estimado: ${excessParts.join(', ')} — ${msg}</span>`;
+            excessContainer.style.display = '';
+        } else {
+            excessContainer.style.display = 'none';
+        }
+    }
+
+    /**
+     * Actualiza la información de costos
+     * @param {Object} costs
+     * @private
+     */
+    _updateCostsInfo(costs) {
+        this._updateElement('totalCost', costs.totalCost.toLocaleString() + ' 🪙');
+        this._updateElement('totalTax', costs.totalTax.toLocaleString() + ' 🪙');
+        this._updateElement('costPerItem', costs.costPerItem.toFixed(0) + ' 🪙');
+    }
+
+    /**
+     * Actualiza la información de ingresos
+     * @param {Object} revenue
+     * @private
+     */
+    _updateRevenueInfo(revenue) {
+        this._updateElement('saleRevenue', revenue.saleRevenue.toLocaleString() + ' 🪙');
+        this._updateElement('excessValue', revenue.excessValue.toLocaleString() + ' 🪙');
+        this._updateElement('totalRevenue', revenue.totalRevenue.toLocaleString() + ' 🪙');
+    }
+
+    /**
+     * Actualiza la información de journals
+     * @param {Object} journals
+     * @private
+     */
+    _updateJournalsInfo(journals) {
+        this._updateElement('baseFame', journals.totalFame.toLocaleString());
+        this._updateElement('journalsFilled',
+            `${journals.journalsComplete.toLocaleString()} (+${journals.journalsPartial}%)`);
+        this._updateElement('journalsProfit', journals.profit.toLocaleString() + ' 🪙');
+    }
+
+    /**
+     * Actualiza la información de profit
+     * @param {Object} profit
+     * @private
+     */
+    _updateProfitInfo(profit) {
+        const finalProfitEl = document.getElementById('finalProfit');
+        const profitPercentageEl = document.getElementById('profitPercentage');
+        const profitAlertEl = document.getElementById('profitAlert');
+
+        if (finalProfitEl) {
+            finalProfitEl.textContent = profit.finalProfit.toLocaleString() + ' 🪙';
+        }
+
+        if (profitPercentageEl) {
+            profitPercentageEl.textContent = `Margen de ganancia: ${profit.profitPercentage.toFixed(2)}%`;
+        }
+
+        // Cambiar color según profit
+        if (profitAlertEl) {
+            if (profit.finalProfit > 0) {
+                profitAlertEl.className = 'profit-alert profit-positive';
+            } else if (profit.finalProfit < 0) {
+                profitAlertEl.className = 'profit-alert profit-negative';
+            } else {
+                profitAlertEl.className = 'profit-alert profit-neutral';
+            }
+        }
+    }
+
+    /**
+     * Muestra recomendaciones
+     * @param {Array<string>} recommendations
+     * @private
+     */
+    _displayRecommendations(recommendations) {
+        const container = document.getElementById('recommendations');
+        if (!container) return;
+
+        container.innerHTML = '';
+        recommendations.forEach(rec => {
+            const div = document.createElement('div');
+            div.className = 'alert alert-info mb-2';
+            div.textContent = rec;
+            container.appendChild(div);
+        });
+    }
+
+    /**
+     * Actualiza un elemento del DOM
+     * @param {string} id
+     * @param {string} value
+     * @private
+     */
+    _updateElement(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = value;
+        }
+    }
+
+    /**
+     * Oculta los resultados
+     */
+    hideResults() {
+        const resultsSection = document.getElementById('results');
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
+        }
+    }
+
+    /**
+     * Carga precios desde la API
+     */
+    async loadPricesFromAPI() {
+        const loadBtn = document.getElementById('loadPricesBtn');
+        if (!loadBtn) return;
+
+        try {
+            // Deshabilitar botón
+            loadBtn.disabled = true;
+            loadBtn.innerHTML = '⏳ Cargando...';
+
+            const config = this.getFormValues();
+            const item = this.createItem(config);
+
+            // Cargar precios de materiales + ítem en la ciudad seleccionada
+            await this.api.updateItemPrices(item, config.city);
+
+            // Actualizar formulario con precios de materiales
+            this._updateFormPrices(item);
+
+            // Obtener precios del ítem en todas las ciudades y mostrar chips
+            try {
+                const cityPrices = await this.api.fetchAllCityPrices(item.getAPIName(), item.quality);
+                this._showCityPrices(cityPrices);
+                if (cityPrices.length > 0) {
+                    document.getElementById('itemPrice').value = cityPrices[0].price;
+                    const citySelector = document.getElementById('citySelector');
+                    if (citySelector) citySelector.value = cityPrices[0].city;
+                    // Marcar el chip de la ciudad con mejor precio como seleccionado
+                    const chips = document.querySelectorAll('.city-chip');
+                    if (chips.length > 0) chips[0].classList.add('selected');
+                }
+            } catch (e) {
+                console.warn('No se pudo obtener precios multi-ciudad:', e);
+            }
+
+            this.showToast('✅ Precios Cargados',
+                `Precios actualizados desde todas las ciudades`);
+
+            // Auto-calcular
+            this.calculate();
+
+        } catch (error) {
+            console.error('Error al cargar precios:', error);
+            this.showToast('❌ Error al cargar precios', error.message || 'No se pudo contactar la API');
+        } finally {
+            loadBtn.disabled = false;
+            loadBtn.innerHTML = '📡 Cargar Precios';
+        }
+    }
+
+    /**
+     * Actualiza los precios en el formulario
+     * @param {Item} item
+     * @private
+     */
+    _updateFormPrices(item) {
+        // Precio del item
+        const itemPriceEl = document.getElementById('itemPrice');
+        if (itemPriceEl) {
+            itemPriceEl.value = item.getPrice();
+        }
+
+        // Precios de materiales
+        // Map recipe keys (LEATHER, METALBAR, PLANKS, CLOTH, artifact) → input element IDs
+        const matToInputId = { LEATHER: 'leatherPrice', METALBAR: 'barsPrice', PLANKS: 'planksPrice', CLOTH: 'clothPrice', artifact: 'artifactPrice' };
+        item.getAllMaterials().forEach((material, type) => {
+            const elementId = matToInputId[type];
+            const el = elementId && document.getElementById(elementId);
+            if (el) el.value = material.price;
+        });
+    }
+
+    /**
+     * Guarda la sesión actual
+     */
+    saveCurrentSession() {
+        if (!this.currentCalculator) {
+            this.showToast('❌ Error', 'No hay datos para guardar');
+            return;
+        }
+
+        try {
+            const analysis = this.currentCalculator.toJSON();
+            const session = this.sessionManager.saveSession(analysis);
+
+            this.showToast('💾 Guardado',
+                `Sesión guardada exitosamente. Total: ${this.sessionManager.getAllSessions().length}`);
+
+            // Descargar JSON
+            this.sessionManager.exportToJSON();
+
+        } catch (error) {
+            console.error('Error al guardar sesión:', error);
+            this.showToast('❌ Error', error.message);
+        }
+    }
+
+    /**
+     * Muestra los precios del ítem por ciudad como chips clickeables
+     * @param {Array} cityPrices - [{city, price}] ordenado desc
+     */
+    _showCityPrices(cityPrices) {
+        const container = document.getElementById('cityPriceChips');
+        if (!container) return;
+        if (!cityPrices.length) {
+            container.innerHTML = '<span class="text-muted small">Sin datos de ciudades</span>';
+            return;
+        }
+        container.innerHTML = cityPrices.map((c, i) => `
+            <button class="city-chip ${i === 0 ? 'best' : ''}" data-city="${c.city}" data-price="${c.price}">
+                ${i === 0 ? '★ ' : ''}<span class="city-name">${c.city}</span>
+                <span class="city-price">${(c.price / 1000).toFixed(1)}K</span>
+            </button>`).join('');
+        container.querySelectorAll('.city-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('itemPrice').value = btn.dataset.price;
+                const citySelector = document.getElementById('citySelector');
+                if (citySelector) citySelector.value = btn.dataset.city;
+                container.querySelectorAll('.city-chip').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                this.calculate();
+            });
+        });
+    }
+
+    /**
+     * Muestra un toast/notificación
+     * @param {string} title
+     * @param {string} message
+     */
+    showToast(title, message) {
+        const toastEl = document.getElementById('saveToast');
+        if (!toastEl) return;
+
+        const titleEl = toastEl.querySelector('.toast-header strong');
+        const bodyEl = toastEl.querySelector('.toast-body');
+
+        if (titleEl) titleEl.textContent = title;
+        if (bodyEl) bodyEl.textContent = message;
+
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+}
+
+// Exportar para uso en otros módulos
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UIManager;
+}
