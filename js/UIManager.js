@@ -64,6 +64,13 @@ class UIManager {
      * @returns {Object}
      */
     getFormValues() {
+        const premium = document.getElementById('premiumToggle')?.checked ?? true;
+        const sellOrderTax = document.getElementById('sellOrderTaxToggle')?.checked ?? true;
+        const buyOrderTax = document.getElementById('buyOrderTaxToggle')?.checked ?? false;
+        // Premium: 4% + 2.5% setup = 6.5% | No-premium: 8% + 2.5% = 10.5%
+        const sellTaxRate = sellOrderTax ? (premium ? 0.065 : 0.105) : 0;
+        const buyOrderFee = buyOrderTax ? 0.025 : 0;
+
         return {
             itemType: document.getElementById('itemType')?.value || 'PICKAXE',
             tier: parseInt(document.getElementById('tier')?.value) || 4,
@@ -74,7 +81,10 @@ class UIManager {
             taxRate: parseFloat(document.getElementById('taxRate')?.value) || 350,
             journalBuyPrice: parseFloat(document.getElementById('journalBuyPrice')?.value) || 0,
             journalSellPrice: parseFloat(document.getElementById('journalSellPrice')?.value) || 0,
-            city: document.getElementById('citySelector')?.value || 'Caerleon'
+            city: document.getElementById('citySelector')?.value || 'Caerleon',
+            premium,
+            sellTaxRate,
+            buyOrderFee
         };
     }
 
@@ -149,7 +159,12 @@ class UIManager {
                 this.currentItem,
                 config.quantity,
                 config.returnRate,
-                config.taxRate
+                config.taxRate,
+                {
+                    sellTaxRate: config.sellTaxRate,
+                    buyOrderFee: config.buyOrderFee,
+                    premiumFame: config.premium
+                }
             );
 
             // Configurar journal manager si hay precios
@@ -435,6 +450,13 @@ class UIManager {
             // Actualizar formulario con precios de materiales
             this._updateFormPrices(item);
 
+            // Cargar precios de materiales en todas las ciudades
+            try {
+                await this._loadMaterialCityPrices(item);
+            } catch (e) {
+                console.warn('No se pudo obtener precios de materiales multi-ciudad:', e);
+            }
+
             // Obtener precios del ítem en todas las ciudades y mostrar chips
             try {
                 const cityPrices = await this.api.fetchAllCityPrices(item.getAPIName(), item.quality);
@@ -539,6 +561,83 @@ class UIManager {
                 this.calculate();
             });
         });
+    }
+
+    /**
+     * Carga y muestra precios por ciudad para cada material activo
+     * @param {Item} item
+     * @private
+     */
+    async _loadMaterialCityPrices(item) {
+        const matToInputId = {
+            LEATHER: 'leatherPrice', METALBAR: 'barsPrice',
+            PLANKS: 'planksPrice', CLOTH: 'clothPrice', artifact: 'artifactPrice'
+        };
+        const fetches = [];
+        item.getAllMaterials().forEach((material, type) => {
+            const inputId = matToInputId[type];
+            if (!inputId) return;
+            fetches.push(
+                this.api.fetchAllCityPrices(material.getAPIName(), 1)
+                    .then(cityPrices => this._showMaterialCityPrices(type, inputId, cityPrices))
+                    .catch(() => {})
+            );
+        });
+        await Promise.allSettled(fetches);
+    }
+
+    /**
+     * Muestra una tabla minimalista de precios por ciudad debajo de un input de material
+     * @param {string} materialType - Tipo de material (METALBAR, LEATHER, etc.)
+     * @param {string} inputId - ID del input de precio
+     * @param {Array} cityPrices - [{city, price}] ordenado desc
+     * @private
+     */
+    _showMaterialCityPrices(materialType, inputId, cityPrices) {
+        const cell = document.querySelector(`#matGrid [data-material="${materialType}"]`);
+        if (!cell) return;
+
+        const existing = cell.querySelector('.mat-city-table');
+        if (existing) existing.remove();
+        if (!cityPrices.length) return;
+
+        const input = document.getElementById(inputId);
+        const abbr = {
+            'Caerleon': 'Cae', 'Bridgewatch': 'Bri', 'Fort Sterling': 'Ste',
+            'Lymhurst': 'Lym', 'Martlock': 'Mar', 'Thetford': 'The',
+            'Brecilien': 'Bre', 'Black Market': 'BM'
+        };
+
+        const table = document.createElement('table');
+        table.className = 'mat-city-table';
+
+        cityPrices.forEach(({ city, price }) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${abbr[city] || city.slice(0, 3)}</td><td>${(price / 1000).toFixed(1)}K</td>`;
+            tr.addEventListener('click', () => {
+                if (input) input.value = price;
+                table.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                tr.classList.add('selected');
+                this.calculate();
+            });
+            table.appendChild(tr);
+        });
+
+        cell.appendChild(table);
+    }
+
+    /**
+     * Limpia precios, sugerencias de ciudad y resultados al cambiar de arma
+     */
+    clearPricesAndResults() {
+        ['leatherPrice', 'barsPrice', 'planksPrice', 'clothPrice', 'artifactPrice', 'itemPrice'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const chips = document.getElementById('cityPriceChips');
+        if (chips) chips.innerHTML = '';
+        document.querySelectorAll('.mat-city-table').forEach(t => t.remove());
+        this.hideResults();
     }
 
     /**

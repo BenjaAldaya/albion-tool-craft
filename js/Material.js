@@ -38,9 +38,9 @@ class Material {
         const baseName = ids[this.tier];
         if (!baseName) throw new Error(`Tier inválido para material ${this.type}: ${this.tier}`);
 
-        // API de precios: todos los items encantados usan @N (ej: T7_LEATHER@1)
-        // Render de imágenes: recursos usan _LEVEL{N} — eso se maneja en getMaterialImageUrl()
-        return this.enchantment > 0 ? `${baseName}@${this.enchantment}` : baseName;
+        // Recursos refinados encantados usan _LEVEL{N}@{N} (ej: T5_METALBAR_LEVEL4@4)
+        // Equipamiento/armas usan solo @N — eso se maneja en Weapon.getAPIName()
+        return this.enchantment > 0 ? `${baseName}_LEVEL${this.enchantment}@${this.enchantment}` : baseName;
     }
 
     /**

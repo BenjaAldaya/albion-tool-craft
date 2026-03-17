@@ -34,7 +34,7 @@ class Weapon extends Item {
         Object.entries(mats).forEach(([matKey, qty]) => {
             if (matKey === 'artifact') {
                 if (this.recipe.artifactKey) {
-                    const artifact = new Material('artifact', this.tier, this.quality, this.enchantment, 0, this.recipe.artifactKey);
+                    const artifact = new Material('artifact', this.tier, this.quality, 0, 0, this.recipe.artifactKey);
                     this.addMaterial(artifact, qty);
                 }
             } else {

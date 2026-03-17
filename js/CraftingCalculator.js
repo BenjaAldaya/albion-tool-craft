@@ -6,14 +6,21 @@ class CraftingCalculator {
      * @param {Item} item - Item a craftear
      * @param {number} quantity - Cantidad a craftear
      * @param {number} returnRate - Tasa de retorno de recursos (0-1)
-     * @param {number} taxRate - Impuesto por item crafteado
+     * @param {number} taxRate - Impuesto por item crafteado (flat, en gold)
+     * @param {Object} options - Opciones de mercado
+     * @param {number} options.sellTaxRate - Tasa de impuesto al vender (ej: 0.065 premium, 0.105 no-premium)
+     * @param {number} options.buyOrderFee - Fee de compra via buy order (ej: 0.025)
+     * @param {boolean} options.premiumFame - Si el jugador tiene premium (+50% fama)
      */
-    constructor(item, quantity = 1, returnRate = 0.48, taxRate = 350) {
+    constructor(item, quantity = 1, returnRate = 0.48, taxRate = 350, options = {}) {
         this.item = item;
         this.quantity = quantity;
         this.returnRate = returnRate;
         this.taxRate = taxRate;
         this.journalManager = null;
+        this.sellTaxRate = options.sellTaxRate ?? 0;
+        this.buyOrderFee = options.buyOrderFee ?? 0;
+        this.premiumFame = options.premiumFame ?? false;
     }
 
     /**
@@ -61,6 +68,7 @@ class CraftingCalculator {
 
     /**
      * Calcula el costo total de materiales
+     * Incluye el fee de buy order si está configurado
      * @returns {number}
      */
     calculateMaterialsCost() {
@@ -71,7 +79,7 @@ class CraftingCalculator {
             totalCost += material.getTotalCost();
         });
 
-        return totalCost;
+        return totalCost * (1 + this.buyOrderFee);
     }
 
     /**
@@ -109,14 +117,16 @@ class CraftingCalculator {
 
     /**
      * Calcula los ingresos por venta de items
+     * Descuenta el impuesto de venta (sell order tax) si está configurado
      * @returns {number}
      */
     calculateSaleRevenue() {
-        return this.item.getPrice() * this.quantity;
+        return this.item.getPrice() * this.quantity * (1 - this.sellTaxRate);
     }
 
     /**
      * Calcula el análisis de journals
+     * Aplica el multiplicador de fama premium (+50%) si corresponde
      * @returns {Object|null}
      */
     calculateJournalAnalysis() {
@@ -124,7 +134,8 @@ class CraftingCalculator {
             return null;
         }
 
-        const totalFame = JournalManager.calculateTotalFame(this.item, this.quantity);
+        const baseFame = JournalManager.calculateTotalFame(this.item, this.quantity);
+        const totalFame = this.premiumFame ? baseFame * 1.5 : baseFame;
         return this.journalManager.calculateJournalAnalysis(totalFame);
     }
 

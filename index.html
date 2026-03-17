@@ -507,6 +507,82 @@
         .city-chip.best { border-color: var(--primary-gold); color: var(--secondary-gold); font-weight: 700; }
         .city-chip.selected { background: rgba(212,175,55,0.18); border-color: var(--secondary-gold); }
         .city-chip .city-price { font-weight: 700; }
+
+        /* ── Premium / Tax Toggles ── */
+        .premium-tax-row {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .tax-toggle-group { display: flex; flex-direction: column; gap: 5px; }
+        .tax-toggle-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.65);
+            letter-spacing: 0.3px;
+        }
+        .tax-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .tax-toggle-label input[type="checkbox"] { display: none; }
+        .tax-toggle-track {
+            width: 36px;
+            height: 20px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            position: relative;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .tax-toggle-label input:checked + .tax-toggle-track { background: #2563eb; }
+        .tax-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        .tax-toggle-label input:checked + .tax-toggle-track .tax-toggle-thumb { transform: translateX(16px); }
+        .tax-toggle-text { font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+        .tax-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.1); }
+
+        /* ── Material City Table ── */
+        .mat-city-table {
+            width: 78px;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 0.6rem;
+        }
+        .mat-city-table tr {
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .mat-city-table tr:hover td { background: rgba(212,175,55,0.15); color: #eee; }
+        .mat-city-table tr.selected td { background: rgba(212,175,55,0.2); color: var(--secondary-gold); }
+        .mat-city-table td {
+            padding: 2px 4px;
+            color: rgba(255,255,255,0.55);
+        }
+        .mat-city-table td:last-child {
+            text-align: right;
+            font-weight: 700;
+            color: rgba(255,255,255,0.8);
+        }
+        .mat-city-table tr.selected td:last-child { color: var(--secondary-gold); }
     </style>
 </head>
 
@@ -596,6 +672,36 @@
                 </div>
 
                 <input type="hidden" id="itemType" value="MAIN_DAGGER">
+
+                <!-- Premium & Market Tax -->
+                <div class="premium-tax-row">
+                    <div class="tax-toggle-group">
+                        <span class="tax-toggle-title">Premium</span>
+                        <label class="tax-toggle-label">
+                            <input type="checkbox" id="premiumToggle" checked>
+                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
+                            <span class="tax-toggle-text">Enabled</span>
+                        </label>
+                    </div>
+                    <div class="tax-divider"></div>
+                    <div class="tax-toggle-group">
+                        <span class="tax-toggle-title">Sell Order (<span id="sellTaxPct">6.5</span>%)</span>
+                        <label class="tax-toggle-label">
+                            <input type="checkbox" id="sellOrderTaxToggle" checked>
+                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
+                            <span class="tax-toggle-text">Include taxes</span>
+                        </label>
+                    </div>
+                    <div class="tax-divider"></div>
+                    <div class="tax-toggle-group">
+                        <span class="tax-toggle-title">Buy Order (+2.5%)</span>
+                        <label class="tax-toggle-label">
+                            <input type="checkbox" id="buyOrderTaxToggle">
+                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
+                            <span class="tax-toggle-text">Include taxes</span>
+                        </label>
+                    </div>
+                </div>
 
                 <div class="separator"></div>
 
@@ -923,6 +1029,9 @@
         }
 
         function selectItem(itemData) {
+            uiManager.clearPricesAndResults();
+            document.getElementById('enchantment').value = '0';
+            document.getElementById('quality').value = '1';
             document.getElementById('itemType').value = itemData.type;
             document.getElementById('selectedWeaponName').textContent = itemData.name;
             document.getElementById('selectedWeaponMeta').textContent =
@@ -1264,6 +1373,18 @@
         // Guardar cache al cambiar ciudad
         document.getElementById('citySelector').addEventListener('change', function () {
             loadPriceCache();
+            uiManager.calculate();
+        });
+
+        // Premium / Tax toggles
+        document.getElementById('premiumToggle').addEventListener('change', function () {
+            document.getElementById('sellTaxPct').textContent = this.checked ? '6.5' : '10.5';
+            uiManager.calculate();
+        });
+        document.getElementById('sellOrderTaxToggle').addEventListener('change', function () {
+            uiManager.calculate();
+        });
+        document.getElementById('buyOrderTaxToggle').addEventListener('change', function () {
             uiManager.calculate();
         });
 
