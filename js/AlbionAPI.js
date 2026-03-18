@@ -118,7 +118,7 @@ class AlbionAPI {
         const toolPrice = prices[tool.getAPIName()];
         if (toolPrice) result.tool.price = toolPrice.sellPriceMin;
 
-        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', artifact: 'artifact' };
+        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', AVALONIANENERGY: 'energy', artifact: 'artifact' };
         tool.getAllMaterials().forEach((material, matKey) => {
             const priceKey = keyMap[matKey] || matKey.toLowerCase();
             const p = prices[material.getAPIName()];

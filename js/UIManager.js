@@ -99,6 +99,7 @@ class UIManager {
             leather: parseFloat(document.getElementById('leatherPrice')?.value) || 0,
             cloth: parseFloat(document.getElementById('clothPrice')?.value) || 0,
             artifact: parseFloat(document.getElementById('artifactPrice')?.value) || 0,
+            energy: parseFloat(document.getElementById('energyPrice')?.value) || 0,
             itemPrice: parseFloat(document.getElementById('itemPrice')?.value) || 0
         };
     }
@@ -244,11 +245,12 @@ class UIManager {
     _updateMaterialsInfo(materials, config) {
         const RENDER_URL = 'https://render.albiononline.com/v1/item';
         const MAT_META = {
-            LEATHER:  { name: 'Cuero',     icon: '🦌' },
-            METALBAR: { name: 'Lingotes',  icon: '⚒️' },
-            PLANKS:   { name: 'Madera',    icon: '🪵' },
-            CLOTH:    { name: 'Tela',      icon: '🧵' },
-            artifact: { name: 'Artefacto', icon: '🔮' }
+            LEATHER:          { name: 'Cuero',     icon: '🦌' },
+            METALBAR:         { name: 'Lingotes',  icon: '⚒️' },
+            PLANKS:           { name: 'Madera',    icon: '🪵' },
+            CLOTH:            { name: 'Tela',      icon: '🧵' },
+            AVALONIANENERGY:  { name: 'Energía',   icon: '⚡' },
+            artifact:         { name: 'Artefacto', icon: '🔮' }
         };
 
         const container = document.getElementById('shoppingList');
@@ -499,7 +501,7 @@ class UIManager {
 
         // Precios de materiales
         // Map recipe keys (LEATHER, METALBAR, PLANKS, CLOTH, artifact) → input element IDs
-        const matToInputId = { LEATHER: 'leatherPrice', METALBAR: 'barsPrice', PLANKS: 'planksPrice', CLOTH: 'clothPrice', artifact: 'artifactPrice' };
+        const matToInputId = { LEATHER: 'leatherPrice', METALBAR: 'barsPrice', PLANKS: 'planksPrice', CLOTH: 'clothPrice', AVALONIANENERGY: 'energyPrice', artifact: 'artifactPrice' };
         item.getAllMaterials().forEach((material, type) => {
             const elementId = matToInputId[type];
             const el = elementId && document.getElementById(elementId);
@@ -568,7 +570,7 @@ class UIManager {
     async _loadMaterialCityPrices(item) {
         const matToInputId = {
             LEATHER: 'leatherPrice', METALBAR: 'barsPrice',
-            PLANKS: 'planksPrice', CLOTH: 'clothPrice', artifact: 'artifactPrice'
+            PLANKS: 'planksPrice', CLOTH: 'clothPrice', AVALONIANENERGY: 'energyPrice', artifact: 'artifactPrice'
         };
         const fetches = [];
         item.getAllMaterials().forEach((material, type) => {
@@ -627,7 +629,7 @@ class UIManager {
      * Limpia precios, sugerencias de ciudad y resultados al cambiar de arma
      */
     clearPricesAndResults() {
-        ['leatherPrice', 'barsPrice', 'planksPrice', 'clothPrice', 'artifactPrice', 'itemPrice'].forEach(id => {
+        ['leatherPrice', 'barsPrice', 'planksPrice', 'clothPrice', 'artifactPrice', 'energyPrice', 'itemPrice'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
