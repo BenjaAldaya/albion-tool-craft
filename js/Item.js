@@ -54,7 +54,8 @@ class Item {
         const qualityName = AlbionConfig.QUALITY_NAMES[this.quality];
         const enchantmentSuffix = this.enchantment > 0 ? `.${this.enchantment}` : '';
 
-        return `T${this.tier}${enchantmentSuffix} ${tierName} ${qualityName} ${this.name}`;
+        const label = this.displayName || this.name;
+        return `T${this.tier}${enchantmentSuffix} ${tierName} ${qualityName} ${label}`;
     }
 
     /**

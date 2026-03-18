@@ -118,17 +118,12 @@ class AlbionAPI {
         const toolPrice = prices[tool.getAPIName()];
         if (toolPrice) result.tool.price = toolPrice.sellPriceMin;
 
-        const planks = tool.getMaterial('PLANKS');
-        if (planks) {
-            const p = prices[planks.getAPIName()];
-            result.materials.planks = p ? p.sellPriceMin : 0;
-        }
-
-        const bars = tool.getMaterial('METALBAR');
-        if (bars) {
-            const p = prices[bars.getAPIName()];
-            result.materials.bars = p ? p.sellPriceMin : 0;
-        }
+        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', artifact: 'artifact' };
+        tool.getAllMaterials().forEach((material, matKey) => {
+            const priceKey = keyMap[matKey] || matKey.toLowerCase();
+            const p = prices[material.getAPIName()];
+            result.materials[priceKey] = p ? p.sellPriceMin : 0;
+        });
 
         return result;
     }
@@ -173,10 +168,7 @@ class AlbionAPI {
         if (item instanceof Tool) {
             priceData = await this.fetchToolCraftingPrices(item, city);
             item.setPrice(priceData.tool.price);
-            item.updateMaterialPrices(
-                priceData.materials.planks || 0,
-                priceData.materials.bars || 0
-            );
+            item.updateMaterialPrices(priceData.materials);
         } else if (item instanceof Weapon || item instanceof Armor) {
             priceData = await this.fetchWeaponCraftingPrices(item, city);
             item.setPrice(priceData.weapon.price);

@@ -17,6 +17,7 @@ class Tool extends Item {
         }
 
         super(recipe.name, tier, quality, enchantment);
+        this.displayName = recipe.displayName;
         this.toolType = toolType;
         this.recipe = recipe;
 
@@ -86,15 +87,16 @@ class Tool extends Item {
 
     /**
      * Actualiza los precios de los materiales
-     * @param {number} planksPrice - Precio de la madera
-     * @param {number} barsPrice - Precio de los lingotes
+     * @param {Object} prices - Objeto con precios: { planks, bars, cloth, leather, artifact }
      */
-    updateMaterialPrices(planksPrice, barsPrice) {
-        const planks = this.getMaterial('PLANKS');
-        if (planks) planks.setPrice(planksPrice);
-
-        const bars = this.getMaterial('METALBAR');
-        if (bars) bars.setPrice(barsPrice);
+    updateMaterialPrices(prices) {
+        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', artifact: 'artifact' };
+        Object.entries(keyMap).forEach(([matKey, priceKey]) => {
+            if (prices[priceKey] !== undefined) {
+                const mat = this.getMaterial(matKey);
+                if (mat) mat.setPrice(prices[priceKey]);
+            }
+        });
     }
 
     /**

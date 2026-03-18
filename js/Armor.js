@@ -17,6 +17,7 @@ class Armor extends Item {
         }
 
         super(recipe.name, tier, quality, enchantment);
+        this.displayName = recipe.displayName;
         this.armorType  = armorType;
         this.recipe     = recipe;
         this.slotType   = recipe.type; // 'armor' | 'head' | 'shoes' | 'offhand'
