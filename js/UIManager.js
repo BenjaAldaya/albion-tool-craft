@@ -245,12 +245,12 @@ class UIManager {
     _updateMaterialsInfo(materials, config) {
         const RENDER_URL = 'https://render.albiononline.com/v1/item';
         const MAT_META = {
-            LEATHER:          { name: 'Cuero',     icon: '🦌' },
-            METALBAR:         { name: 'Lingotes',  icon: '⚒️' },
-            PLANKS:           { name: 'Madera',    icon: '🪵' },
-            CLOTH:            { name: 'Tela',      icon: '🧵' },
-            AVALONIANENERGY:  { name: 'Energía',   icon: '⚡' },
-            artifact:         { name: 'Artefacto', icon: '🔮' }
+            LEATHER:          { name: 'Cuero',     icon: 'bi-egg' },
+            METALBAR:         { name: 'Lingotes',  icon: 'bi-tools' },
+            PLANKS:           { name: 'Madera',    icon: 'bi-tree-fill' },
+            CLOTH:            { name: 'Tela',      icon: 'bi-layers-fill' },
+            AVALONIANENERGY:  { name: 'Energía',   icon: 'bi-lightning-fill' },
+            artifact:         { name: 'Artefacto', icon: 'bi-gem' }
         };
 
         const container = document.getElementById('shoppingList');
@@ -260,7 +260,7 @@ class UIManager {
         Object.entries(materials.toBuy).forEach(([type, material]) => {
             if (material.quantity <= 0) return;
 
-            const meta = MAT_META[type] || { name: type, icon: '📦' };
+            const meta = MAT_META[type] || { name: type, icon: 'bi-box-fill' };
             const enchSuffix = material.enchantment > 0 ? `.${material.enchantment}` : '';
             const label = `T${material.tier}${enchSuffix} ${meta.name}`;
             // El render usa _LEVEL{N}, el API de precios usa @{N} — convertir
@@ -268,7 +268,7 @@ class UIManager {
             const imgSrc = `${RENDER_URL}/${renderName}.png?quality=1&size=80`;
             const unitPrice = material.price > 0 ? material.price.toLocaleString() : '—';
             const totalCost = material.price > 0
-                ? (material.price * material.quantity).toLocaleString() + ' 🪙'
+                ? (material.price * material.quantity).toLocaleString() + ' <i class="bi bi-coin" style="font-size:0.8em;"></i>'
                 : 'Sin precio';
 
             const row = document.createElement('tr');
@@ -302,7 +302,7 @@ class UIManager {
 
         Object.entries(materials.excess).forEach(([type, mat]) => {
             if (mat.quantity <= 0) return;
-            const meta = MAT_META[type] || { name: type, icon: '📦' };
+            const meta = MAT_META[type] || { name: type, icon: 'bi-box-fill' };
             const neededMat = materials.needed[type];
             const basePerItem = neededMat ? neededMat.quantity / config.quantity : Infinity;
             const enough = mat.quantity >= basePerItem;
@@ -311,7 +311,9 @@ class UIManager {
         });
 
         if (excessParts.length > 0) {
-            const icon = canCraftOneMore ? '✅' : 'ℹ️';
+            const icon = canCraftOneMore
+                ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                : '<i class="bi bi-info-circle-fill text-info"></i>';
             const msg = canCraftOneMore
                 ? 'El sobrante alcanza para <strong>1 crafteo más</strong>'
                 : 'El sobrante <strong>no alcanza</strong> para otro crafteo';
@@ -329,9 +331,10 @@ class UIManager {
      * @private
      */
     _updateCostsInfo(costs) {
-        this._updateElement('totalCost', costs.totalCost.toLocaleString() + ' 🪙');
-        this._updateElement('totalTax', costs.totalTax.toLocaleString() + ' 🪙');
-        this._updateElement('costPerItem', costs.costPerItem.toFixed(0) + ' 🪙');
+        const coin = ' <i class="bi bi-coin" style="font-size:0.85em;"></i>';
+        this._updateElementHTML('totalCost', costs.totalCost.toLocaleString() + coin);
+        this._updateElementHTML('totalTax', costs.totalTax.toLocaleString() + coin);
+        this._updateElementHTML('costPerItem', costs.costPerItem.toFixed(0) + coin);
     }
 
     /**
@@ -340,9 +343,10 @@ class UIManager {
      * @private
      */
     _updateRevenueInfo(revenue) {
-        this._updateElement('saleRevenue', revenue.saleRevenue.toLocaleString() + ' 🪙');
-        this._updateElement('excessValue', revenue.excessValue.toLocaleString() + ' 🪙');
-        this._updateElement('totalRevenue', revenue.totalRevenue.toLocaleString() + ' 🪙');
+        const coin = ' <i class="bi bi-coin" style="font-size:0.85em;"></i>';
+        this._updateElementHTML('saleRevenue', revenue.saleRevenue.toLocaleString() + coin);
+        this._updateElementHTML('excessValue', revenue.excessValue.toLocaleString() + coin);
+        this._updateElementHTML('totalRevenue', revenue.totalRevenue.toLocaleString() + coin);
     }
 
     /**
@@ -354,7 +358,7 @@ class UIManager {
         this._updateElement('baseFame', journals.totalFame.toLocaleString());
         this._updateElement('journalsFilled',
             `${journals.journalsComplete.toLocaleString()} (+${journals.journalsPartial}%)`);
-        this._updateElement('journalsProfit', journals.profit.toLocaleString() + ' 🪙');
+        this._updateElementHTML('journalsProfit', journals.profit.toLocaleString() + ' <i class="bi bi-coin" style="font-size:0.85em;"></i>');
     }
 
     /**
@@ -368,7 +372,7 @@ class UIManager {
         const profitAlertEl = document.getElementById('profitAlert');
 
         if (finalProfitEl) {
-            finalProfitEl.textContent = profit.finalProfit.toLocaleString() + ' 🪙';
+            finalProfitEl.innerHTML = profit.finalProfit.toLocaleString() + ' <i class="bi bi-coin" style="font-size:0.75em;"></i>';
         }
 
         if (profitPercentageEl) {
@@ -406,7 +410,7 @@ class UIManager {
     }
 
     /**
-     * Actualiza un elemento del DOM
+     * Actualiza un elemento del DOM (texto plano)
      * @param {string} id
      * @param {string} value
      * @private
@@ -415,6 +419,19 @@ class UIManager {
         const el = document.getElementById(id);
         if (el) {
             el.textContent = value;
+        }
+    }
+
+    /**
+     * Actualiza un elemento del DOM (HTML)
+     * @param {string} id
+     * @param {string} html
+     * @private
+     */
+    _updateElementHTML(id, html) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = html;
         }
     }
 
@@ -438,7 +455,7 @@ class UIManager {
         try {
             // Deshabilitar botón
             loadBtn.disabled = true;
-            loadBtn.innerHTML = '⏳ Cargando...';
+            loadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Cargando...';
 
             const config = this.getFormValues();
             const item = this.createItem(config);
@@ -483,7 +500,7 @@ class UIManager {
             this.showToast('❌ Error al cargar precios', error.message || 'No se pudo contactar la API');
         } finally {
             loadBtn.disabled = false;
-            loadBtn.innerHTML = '📡 Cargar Precios';
+            loadBtn.innerHTML = '<i class="bi bi-cloud-download-fill"></i> Cargar Precios';
         }
     }
 
