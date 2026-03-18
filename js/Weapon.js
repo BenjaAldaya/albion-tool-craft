@@ -17,6 +17,7 @@ class Weapon extends Item {
         }
 
         super(recipe.name, tier, quality, enchantment);
+        this.displayName = recipe.displayName;
         this.weaponType = weaponType;
         this.recipe = recipe;
         this.handType = recipe.type; // 1H o 2H

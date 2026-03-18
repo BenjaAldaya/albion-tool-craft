@@ -130,11 +130,7 @@ class UIManager {
     updateItemPrices(item, prices) {
         item.setPrice(prices.itemPrice);
 
-        if (item instanceof Tool) {
-            item.updateMaterialPrices(prices.planks, prices.bars);
-        } else if (item instanceof Weapon || item instanceof Armor) {
-            item.updateMaterialPrices(prices);
-        }
+        item.updateMaterialPrices(prices);
     }
 
     /**
