@@ -1,6 +1,6 @@
 # Albion Online - Calculadora de Profit de Crafteo
 
-Herramienta web para calcular la rentabilidad de craftear armas y herramientas en **Albion Online**. Consulta precios en tiempo real a través de la API pública del juego y calcula el profit neto considerando materiales, impuestos, tasa de retorno y journals de fama.
+Herramienta web para calcular la rentabilidad de craftear armas, herramientas y armaduras en **Albion Online**. Consulta precios en tiempo real a través de la API pública del juego y calcula el profit neto considerando materiales, impuestos, tasa de retorno y journals de fama.
 
 ## Características
 
@@ -14,8 +14,7 @@ Herramienta web para calcular la rentabilidad de craftear armas y herramientas e
 - Interfaz oscura con temática de Albion Online
 
 ## Uso
-
-No requiere instalación. Abre `index.html` directamente en el navegador.
+Descarga el repositorio y abre `index.html` directamente en el navegador.
 
 ```
 index.html   ← Abrir este archivo
@@ -27,7 +26,7 @@ index.html   ← Abrir este archivo
 2. Selecciona la **ciudad** donde comprarás materiales y venderás el item
 3. Elige el **tipo de item** (arma o herramienta), **tier** y **encantamiento**
 4. Ajusta la **tasa de retorno** según tu foco/bonus de ciudad
-5. Ingresa el **impuesto** por item (en plata)
+5. Ingresa el **impuesto** por utilizar el puesto de trabajo (en plata)
 6. Configura la **cantidad** a craftear
 7. (Opcional) Activa los **journals** e ingresa sus precios
 8. Haz clic en **"Calcular Profit"** para consultar los precios y ver el resultado
