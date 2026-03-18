@@ -756,6 +756,10 @@
                                      onerror="this.onerror=null;this.style.opacity='0.25'">
                                 <input type="number" id="artifactPrice" placeholder="0" min="0">
                             </div>
+                            <div class="mat-cell" data-material="AVALONIANENERGY">
+                                <span style="font-size:1.4rem;line-height:1;">⚡</span>
+                                <input type="number" id="energyPrice" placeholder="0" min="0">
+                            </div>
                         </div>
                     </div>
 
@@ -1218,6 +1222,7 @@
                 planks:       parseFloat(document.getElementById('planksPrice')?.value)      || 0,
                 cloth:        parseFloat(document.getElementById('clothPrice')?.value)       || 0,
                 artifact:     parseFloat(document.getElementById('artifactPrice')?.value)    || 0,
+                energy:       parseFloat(document.getElementById('energyPrice')?.value)      || 0,
                 item:         parseFloat(document.getElementById('itemPrice')?.value)        || 0,
                 journalBuy:   parseFloat(document.getElementById('journalBuyPrice')?.value)  || 0,
                 journalSell:  parseFloat(document.getElementById('journalSellPrice')?.value) || 0
@@ -1274,7 +1279,7 @@
             // 4. Setear precios (incluye journals)
             const map = {
                 leather:'leatherPrice', bars:'barsPrice', planks:'planksPrice',
-                cloth:'clothPrice', artifact:'artifactPrice', item:'itemPrice',
+                cloth:'clothPrice', artifact:'artifactPrice', energy:'energyPrice', item:'itemPrice',
                 journalBuy:'journalBuyPrice', journalSell:'journalSellPrice'
             };
             Object.entries(map).forEach(([field, id]) => {
@@ -1358,7 +1363,8 @@
                 bars:     parseFloat(document.getElementById('barsPrice')?.value)      || 0,
                 planks:   parseFloat(document.getElementById('planksPrice')?.value)    || 0,
                 cloth:    parseFloat(document.getElementById('clothPrice')?.value)     || 0,
-                artifact: parseFloat(document.getElementById('artifactPrice')?.value)  || 0
+                artifact: parseFloat(document.getElementById('artifactPrice')?.value)  || 0,
+                energy:   parseFloat(document.getElementById('energyPrice')?.value)    || 0
             };
             const hasAny = Object.values(inputs).some(v => v > 0);
             if (!hasAny) return;
@@ -1376,7 +1382,7 @@
 
             const map = {
                 leather: 'leatherPrice', bars: 'barsPrice',
-                planks: 'planksPrice',   cloth: 'clothPrice', artifact: 'artifactPrice'
+                planks: 'planksPrice',   cloth: 'clothPrice', artifact: 'artifactPrice', energy: 'energyPrice'
             };
             let loaded = false;
             Object.entries(map).forEach(([field, id]) => {

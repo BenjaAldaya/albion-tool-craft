@@ -60,19 +60,19 @@ const AlbionConfig = {
 
         // === HERRAMIENTA ===
         "2H_TOOL_AXE": { displayName: "Hacha de Tala", name: "2H_TOOL_AXE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_AXE_AVALON": { displayName: "Hacha de Tala de Avalon", name: "2H_TOOL_AXE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_AXE_AVALON": { displayName: "Hacha de Tala de Avalon", name: "2H_TOOL_AXE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_FISHINGROD": { displayName: "Caña de Pesca", name: "2H_TOOL_FISHINGROD", category: "Herramienta", type: "tool", materials: { PLANKS: 6, CLOTH: 2 } },
-        "2H_TOOL_FISHINGROD_AVALON": { displayName: "Caña de Pesca de Avalon", name: "2H_TOOL_FISHINGROD_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, CLOTH: 2 } },
+        "2H_TOOL_FISHINGROD_AVALON": { displayName: "Caña de Pesca de Avalon", name: "2H_TOOL_FISHINGROD_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, CLOTH: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_HAMMER": { displayName: "Pico de Minería", name: "2H_TOOL_HAMMER", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_HAMMER_AVALON": { displayName: "Pico de Minería de Avalon", name: "2H_TOOL_HAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_HAMMER_AVALON": { displayName: "Pico de Minería de Avalon", name: "2H_TOOL_HAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_KNIFE": { displayName: "Cuchillo de Desuello", name: "2H_TOOL_KNIFE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_KNIFE_AVALON": { displayName: "Cuchillo de Desuello de Avalon", name: "2H_TOOL_KNIFE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_KNIFE_AVALON": { displayName: "Cuchillo de Desuello de Avalon", name: "2H_TOOL_KNIFE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_PICK": { displayName: "Pico", name: "2H_TOOL_PICK", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_PICK_AVALON": { displayName: "Pico de Avalon", name: "2H_TOOL_PICK_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_PICK_AVALON": { displayName: "Pico de Avalon", name: "2H_TOOL_PICK_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_SICKLE": { displayName: "Hoz", name: "2H_TOOL_SICKLE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_SICKLE_AVALON": { displayName: "Hoz de Avalon", name: "2H_TOOL_SICKLE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_SICKLE_AVALON": { displayName: "Hoz de Avalon", name: "2H_TOOL_SICKLE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
         "2H_TOOL_SIEGEHAMMER": { displayName: "Martillo de Asedio", name: "2H_TOOL_SIEGEHAMMER", category: "Herramienta", type: "tool", materials: { PLANKS: 8 } },
-        "2H_TOOL_SIEGEHAMMER_AVALON": { displayName: "Martillo de Asedio de Avalon", name: "2H_TOOL_SIEGEHAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 8 } },
+        "2H_TOOL_SIEGEHAMMER_AVALON": { displayName: "Martillo de Asedio de Avalon", name: "2H_TOOL_SIEGEHAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 8, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
 
     },
 
@@ -459,6 +459,12 @@ const AlbionConfig = {
         "HEAD_CLOTH_SET1": { displayName: "Gorro del Erudito", name: "HEAD_CLOTH_SET1", category: "Casco de Tela", type: "head", materials: { CLOTH: 8 } },
         "HEAD_CLOTH_SET2": { displayName: "Gorro del Clérigo", name: "HEAD_CLOTH_SET2", category: "Casco de Tela", type: "head", materials: { CLOTH: 8 } },
         "HEAD_CLOTH_SET3": { displayName: "Gorro del Mago", name: "HEAD_CLOTH_SET3", category: "Casco de Tela", type: "head", materials: { CLOTH: 8 } },
+
+        // === BOLSAS ===
+        "BAG": { displayName: "Bolsa", name: "BAG", category: "Accesorio", type: "bag", materials: { CLOTH: 8, LEATHER: 8 } },
+
+        // === CAPAS ===
+        "CAPE": { displayName: "Capa", name: "CAPE", category: "Accesorio", type: "cape", materials: { LEATHER: 16 } },
 
     },
 

@@ -32,8 +32,9 @@ class Tool extends Item {
     _initializeMaterials() {
         const mats = this.recipe.materials;
         Object.entries(mats).forEach(([matKey, qty]) => {
+            const resolvedQty = typeof qty === 'object' ? qty[this.tier] : qty;
             const mat = new Material(matKey, this.tier, 1, 0);
-            this.addMaterial(mat, qty);
+            this.addMaterial(mat, resolvedQty);
         });
     }
 
@@ -80,7 +81,9 @@ class Tool extends Item {
         const enchantMult = AlbionConfig.ENCHANTMENT_FAME_MULTIPLIER[this.enchantment] || 1;
         let totalResources = 0;
         Object.entries(this.recipe.materials).forEach(([key, qty]) => {
-            if (key !== 'artifact') totalResources += qty;
+            if (key !== 'artifact') {
+                totalResources += typeof qty === 'object' ? qty[this.tier] : qty;
+            }
         });
         return famePerResource * totalResources * enchantMult;
     }
@@ -90,7 +93,7 @@ class Tool extends Item {
      * @param {Object} prices - Objeto con precios: { planks, bars, cloth, leather, artifact }
      */
     updateMaterialPrices(prices) {
-        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', artifact: 'artifact' };
+        const keyMap = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', AVALONIANENERGY: 'energy', artifact: 'artifact' };
         Object.entries(keyMap).forEach(([matKey, priceKey]) => {
             if (prices[priceKey] !== undefined) {
                 const mat = this.getMaterial(matKey);

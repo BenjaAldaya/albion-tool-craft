@@ -182,8 +182,8 @@ class Item {
 
             let toBuy, returned, leftover;
 
-            // Los artefactos NO tienen retorno de recursos
-            if (type === 'artifact') {
+            // Los artefactos y la Energía Avaloniana NO tienen retorno de recursos
+            if (type === 'artifact' || type === 'AVALONIANENERGY') {
                 toBuy = totalNeeded;
                 returned = 0;
                 leftover = 0;

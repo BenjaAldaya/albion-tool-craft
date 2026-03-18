@@ -1,4 +1,11 @@
 const ITEM_API_NAMES = {
+    "AVALONIANENERGY": {
+        "4": "QUESTITEM_TOKEN_AVALON",
+        "5": "QUESTITEM_TOKEN_AVALON",
+        "6": "QUESTITEM_TOKEN_AVALON",
+        "7": "QUESTITEM_TOKEN_AVALON",
+        "8": "QUESTITEM_TOKEN_AVALON"
+    },
     "2H_TOOL_TRACKING": {
         "4": "T4_2H_TOOL_TRACKING",
         "5": "T5_2H_TOOL_TRACKING",
