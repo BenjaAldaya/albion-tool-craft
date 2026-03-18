@@ -111,11 +111,12 @@ class UIManager {
     createItem(config) {
         const { itemType, tier, quality, enchantment } = config;
 
-        // Determinar si es herramienta o arma
         if (AlbionConfig.TOOL_RECIPES[itemType]) {
             return new Tool(itemType, tier, quality, enchantment);
         } else if (AlbionConfig.WEAPON_RECIPES[itemType]) {
             return new Weapon(itemType, tier, quality, enchantment);
+        } else if (AlbionConfig.ARMOR_RECIPES[itemType]) {
+            return new Armor(itemType, tier, quality, enchantment);
         } else {
             throw new Error(`Tipo de item desconocido: ${itemType}`);
         }
@@ -131,7 +132,7 @@ class UIManager {
 
         if (item instanceof Tool) {
             item.updateMaterialPrices(prices.planks, prices.bars);
-        } else if (item instanceof Weapon) {
+        } else if (item instanceof Weapon || item instanceof Armor) {
             item.updateMaterialPrices(prices);
         }
     }

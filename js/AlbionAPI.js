@@ -177,7 +177,7 @@ class AlbionAPI {
                 priceData.materials.planks || 0,
                 priceData.materials.bars || 0
             );
-        } else if (item instanceof Weapon) {
+        } else if (item instanceof Weapon || item instanceof Armor) {
             priceData = await this.fetchWeaponCraftingPrices(item, city);
             item.setPrice(priceData.weapon.price);
             item.updateMaterialPrices(priceData.materials);
