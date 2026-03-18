@@ -226,8 +226,9 @@
             flex-shrink: 0;
         }
 
-        .badge-1h { background: rgba(79, 195, 247, 0.2); color: #4FC3F7; border: 1px solid #4FC3F7; }
-        .badge-2h { background: rgba(244, 67, 54, 0.2); color: #f88; border: 1px solid #f88; }
+        .badge-1h    { background: rgba(79, 195, 247, 0.2); color: #4FC3F7; border: 1px solid #4FC3F7; }
+        .badge-2h    { background: rgba(244, 67, 54, 0.2);  color: #f88;    border: 1px solid #f88; }
+        .badge-armor { background: rgba(129, 199, 132, 0.2); color: #81C784; border: 1px solid #81C784; }
 
         .selected-weapon-display {
             display: flex;
@@ -895,6 +896,7 @@
     <script src="js/Item.js"></script>
     <script src="js/Tool.js"></script>
     <script src="js/Weapon.js"></script>
+    <script src="js/Armor.js"></script>
     <script src="js/JournalManager.js"></script>
     <script src="js/AlbionAPI.js"></script>
     <script src="js/CraftingCalculator.js"></script>
@@ -916,7 +918,7 @@
             Object.entries(AlbionConfig.TOOL_RECIPES).forEach(([key, recipe]) => {
                 items.push({
                     type: key,
-                    name: recipe.name,
+                    name: recipe.displayName || recipe.name,
                     category: 'Herramienta',
                     handType: '1H',
                     isTool: true,
@@ -928,10 +930,23 @@
             Object.entries(AlbionConfig.WEAPON_RECIPES).forEach(([key, recipe]) => {
                 items.push({
                     type: key,
-                    name: recipe.name,
+                    name: recipe.displayName || recipe.name,
                     category: recipe.category || 'Arma',
                     handType: recipe.type || '1H',
                     isTool: false,
+                    materials: Object.keys(recipe.materials)
+                });
+            });
+
+            // Armaduras (pecho, casco, botas, offhands)
+            Object.entries(AlbionConfig.ARMOR_RECIPES).forEach(([key, recipe]) => {
+                items.push({
+                    type: key,
+                    name: recipe.displayName || recipe.name,
+                    category: recipe.category || 'Armadura',
+                    handType: recipe.type || 'armor',
+                    isTool: false,
+                    isArmor: true,
                     materials: Object.keys(recipe.materials)
                 });
             });
@@ -998,7 +1013,7 @@
             const tier = getCurrentTier();
             const enchantment = getCurrentEnchantment();
             const itemType = document.getElementById('itemType').value;
-            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType];
+            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType] || AlbionConfig.ARMOR_RECIPES[itemType];
 
             // Ocultar todos los cards primero
             Object.values(MAT_IMG).forEach(id => {
@@ -1067,7 +1082,11 @@
                 html += `<div class="weapon-category-header">${cat}</div>`;
                 items.forEach(item => {
                     const imgUrl = getItemImageUrl(item.type, tier);
-                    const badgeClass = item.handType === '2H' ? 'badge-2h' : 'badge-1h';
+                    const SLOT_LABEL = { armor: 'PECHO', head: 'CASCO', shoes: 'BOTAS', offhand: 'OFF', tool: 'TOOL' };
+                    const badgeLabel = SLOT_LABEL[item.handType] || item.handType;
+                    const badgeClass = item.handType === '2H' ? 'badge-2h'
+                        : item.isArmor ? 'badge-armor'
+                        : 'badge-1h';
                     html += `
                         <div class="weapon-option" data-type="${item.type}">
                             <img src="${imgUrl}" alt="${item.name}"
@@ -1076,7 +1095,7 @@
                                 <div class="weapon-option-name">${item.name}</div>
                                 <div class="weapon-option-meta">${item.category}</div>
                             </div>
-                            <span class="weapon-option-badge ${badgeClass}">${item.handType}</span>
+                            <span class="weapon-option-badge ${badgeClass}">${badgeLabel}</span>
                         </div>`;
                 });
             });
@@ -1165,7 +1184,7 @@
             document.querySelectorAll('.mat-cell').forEach(el => el.classList.add('d-none'));
 
             // Leer la receta directamente desde config (herramienta o arma)
-            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType];
+            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType] || AlbionConfig.ARMOR_RECIPES[itemType];
             if (!recipe) return;
 
             const mats = Object.keys(recipe.materials);
