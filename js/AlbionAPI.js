@@ -3,8 +3,20 @@
  */
 class AlbionAPI {
     constructor() {
-        this.baseURL = AlbionConfig.API_URL;
+        const savedServer = localStorage.getItem('albionServer') || 'AMERICAS';
+        this.baseURL = AlbionConfig.API_URLS[savedServer] || AlbionConfig.API_URLS.AMERICAS;
         this.defaultCity = AlbionConfig.CITIES.CAERLEON;
+    }
+
+    /**
+     * Cambia el servidor de la API (Americas / Europe / Asia)
+     * @param {string} serverKey - 'AMERICAS' | 'EUROPE' | 'ASIA'
+     */
+    setServer(serverKey) {
+        const url = AlbionConfig.API_URLS[serverKey];
+        if (!url) throw new Error(`Servidor inválido: ${serverKey}`);
+        this.baseURL = url;
+        localStorage.setItem('albionServer', serverKey);
     }
 
     /**

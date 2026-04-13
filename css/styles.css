@@ -1,0 +1,704 @@
+:root {
+    --primary-gold: #D4AF37;
+    --secondary-gold: #FFD700;
+    --dark-bg: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --accent-blue: #4FC3F7;
+    --success-green: #4CAF50;
+    --danger-red: #f44336;
+    --leather-brown: #8B4513;
+    --metal-gray: #708090;
+    --wood-brown: #A0522D;
+    --cloth-white: #E0E0E0;
+    --artifact-purple: #9C27B0;
+    --border-gold: rgba(212,175,55,0.35);
+}
+
+body {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-container {
+    background: #1a1a1a;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.header-title {
+    background: linear-gradient(45deg, var(--primary-gold), var(--secondary-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.config-card {
+    background: #2d2d2d;
+    border-radius: 15px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Material Cards */
+.material-card {
+    background: #2d2d2d;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid rgba(255,255,255,0.08);
+    border-top: 3px solid var(--material-color);
+    height: 100%;
+}
+
+.material-card.leather { --material-color: var(--leather-brown); }
+.material-card.metal   { --material-color: var(--metal-gray); }
+.material-card.wood    { --material-color: var(--wood-brown); }
+.material-card.cloth   { --material-color: var(--cloth-white); }
+.material-card.artifact { --material-color: var(--artifact-purple); }
+
+.material-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.material-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary-gold);
+    margin-bottom: 15px;
+}
+
+.material-input-group {
+    position: relative;
+}
+
+.material-input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 12px 45px 12px 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+.material-input:focus {
+    outline: none;
+    border-color: var(--material-color);
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.material-currency {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+}
+
+/* Weapon Search */
+.weapon-search-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.weapon-search-input {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 2px solid rgba(212, 175, 55, 0.4) !important;
+    color: #fff !important;
+    font-size: 1rem;
+    padding-left: 15px;
+}
+
+.weapon-search-input::placeholder {
+    color: rgba(255,255,255,0.4);
+}
+
+.weapon-results-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #1e1e2e;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 12px;
+    max-height: 380px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.weapon-results-panel.open {
+    display: block;
+}
+
+.weapon-category-header {
+    padding: 8px 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary-gold);
+    background: rgba(212, 175, 55, 0.08);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+    position: sticky;
+    top: 0;
+}
+
+.weapon-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.weapon-option:hover, .weapon-option.highlighted {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.weapon-option img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.weapon-option-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.weapon-option-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.weapon-option-meta {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+}
+
+.weapon-option-badge {
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.badge-1h    { background: rgba(79, 195, 247, 0.2); color: #4FC3F7; border: 1px solid #4FC3F7; }
+.badge-2h    { background: rgba(244, 67, 54, 0.2);  color: #f88;    border: 1px solid #f88; }
+.badge-armor { background: rgba(129, 199, 132, 0.2); color: #81C784; border: 1px solid #81C784; }
+
+.selected-weapon-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-top: 10px;
+}
+
+.selected-weapon-display img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.4);
+}
+
+.selected-weapon-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--secondary-gold);
+}
+
+.selected-weapon-meta {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 3px;
+}
+
+.no-results-msg {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.9rem;
+}
+
+/* Tier Selector */
+.tier-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.tier-btn {
+    flex: none;
+    min-width: 36px;
+    padding: 7px 6px;
+    background: #2d2d2d;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.tier-btn:hover  { border-color: var(--accent-blue); }
+.tier-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #000; }
+
+.form-control,
+.form-select {
+    background: #2d2d2d;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    color: #ffffff;
+    border-radius: 10px;
+    transition: border-color 0.15s;
+    padding: 12px 15px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: #2d2d2d;
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.2);
+    color: #ffffff;
+}
+
+.form-label {
+    color: var(--secondary-gold);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.calculate-btn {
+    background: var(--primary-gold);
+    border: none;
+    border-radius: 12px;
+    padding: 18px 40px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #000;
+    width: 100%;
+}
+
+.calculate-btn:hover { background: var(--secondary-gold); }
+
+.api-btn {
+    background: var(--accent-blue);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.api-btn:hover { opacity: 0.85; }
+
+.results-card {
+    background: #2d2d2d;
+    border-radius: 15px;
+    border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.section-title {
+    color: var(--accent-blue);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(79, 195, 247, 0.3);
+}
+
+.stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid var(--stat-color);
+}
+
+.stat-card.cost    { --stat-color: #f44336; }
+.stat-card.revenue { --stat-color: #4CAF50; }
+.stat-card.journal { --stat-color: #4FC3F7; }
+
+.profit-alert {
+    border-radius: 15px;
+    border: none;
+    padding: 30px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.profit-positive { background: rgba(76, 175, 80, 0.15); border: 2px solid var(--success-green); }
+.profit-negative { background: rgba(244, 67, 54, 0.15); border: 2px solid var(--danger-red); }
+
+.text-muted { color: rgba(255,255,255,0.55) !important; }
+
+.separator {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary-gold), transparent);
+    margin: 30px 0;
+    border-radius: 2px;
+}
+
+.d-none { display: none !important; }
+
+/* Shopping List */
+.shopping-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.shopping-item-qty {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-gold);
+    min-width: 42px;
+    text-align: right;
+}
+
+/* ── Snapshot Strip ── */
+.snap-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212,175,55,0.3) transparent;
+}
+.snap-strip::-webkit-scrollbar { height: 4px; }
+.snap-strip::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
+.snap-card {
+    flex-shrink: 0;
+    width: 88px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border-gold);
+    border-radius: 8px;
+    padding: 8px 6px 6px;
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    transition: border-color 0.15s, background 0.15s;
+}
+.snap-card:hover { border-color: var(--primary-gold); background: rgba(212,175,55,0.08); }
+.snap-card img { width: 48px; height: 48px; object-fit: contain; border-radius: 4px; }
+.snap-card-name { font-size: 0.62rem; font-weight: 600; color: #f0c040; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 5px; }
+.snap-card-tier { font-size: 0.6rem; color: rgba(255,255,255,0.45); }
+.snap-card-profit { font-size: 0.67rem; font-weight: 700; margin-top: 2px; }
+.snap-card-del { position: absolute; top: 3px; right: 3px; background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.65rem; padding: 0; line-height: 1; }
+.snap-card-del:hover { color: #f66; }
+
+/* ── Material Grid ── */
+.mat-grid { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 14px; }
+.mat-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 78px; }
+.mat-cell.d-none { display: none !important; }
+.mat-cell img { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; background: rgba(0,0,0,0.3); }
+.mat-cell input[type=number] {
+    width: 78px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    border-radius: 6px;
+    padding: 5px 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+}
+.mat-cell input[type=number]:focus { outline: none; border-color: var(--primary-gold); }
+.mat-cell input[type=number]::-webkit-inner-spin-button,
+.mat-cell input[type=number]::-webkit-outer-spin-button { opacity: 0.3; }
+
+/* ── City Chips ── */
+.city-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.city-chip {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.city-chip:hover { border-color: rgba(212,175,55,0.5); color: #ddd; }
+.city-chip.best { border-color: var(--primary-gold); color: var(--secondary-gold); font-weight: 700; }
+.city-chip.selected { background: rgba(212,175,55,0.18); border-color: var(--secondary-gold); }
+.city-chip .city-price { font-weight: 700; }
+
+/* ── Premium / Tax Toggles ── */
+.premium-tax-row {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+.tax-toggle-group { display: flex; flex-direction: column; gap: 5px; }
+.tax-toggle-title { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; }
+.tax-toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.tax-toggle-label input[type="checkbox"] { display: none; }
+.tax-toggle-track {
+    width: 36px;
+    height: 20px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+.tax-toggle-label input:checked + .tax-toggle-track { background: #2563eb; }
+.tax-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.tax-toggle-label input:checked + .tax-toggle-track .tax-toggle-thumb { transform: translateX(16px); }
+.tax-toggle-text { font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+.tax-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.1); }
+
+/* ── Material City Table ── */
+.mat-city-table { width: 78px; border-collapse: collapse; margin-top: 5px; font-size: 0.6rem; }
+.mat-city-table tr { cursor: pointer; transition: background 0.1s; }
+.mat-city-table tr:hover td { background: rgba(212,175,55,0.15); color: #eee; }
+.mat-city-table tr.selected td { background: rgba(212,175,55,0.2); color: var(--secondary-gold); }
+.mat-city-table td { padding: 2px 4px; color: rgba(255,255,255,0.55); }
+.mat-city-table td:last-child { text-align: right; font-weight: 700; color: rgba(255,255,255,0.8); }
+.mat-city-table tr.selected td:last-child { color: var(--secondary-gold); }
+
+/* ── Mobile Responsive (B3) ── */
+@media (max-width: 576px) {
+    /* Apilar columnas de materiales y precio de venta verticalmente */
+    .mat-price-columns {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    /* Separador vertical no tiene sentido en mobile */
+    .mat-price-columns > div[style*="width:1px"] {
+        display: none;
+    }
+
+    /* Grid 3×2 para los materiales */
+    .mat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 78px);
+        gap: 10px;
+    }
+
+    /* Touch targets más grandes para tier buttons */
+    .tier-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px 6px;
+    }
+
+    /* Dropdown de búsqueda no se sale de pantalla */
+    .weapon-results-panel {
+        max-height: 50vh;
+    }
+
+    /* Reducir padding del config card */
+    .config-card {
+        padding: 14px !important;
+    }
+
+    .main-container {
+        border-radius: 12px;
+        padding: 12px !important;
+    }
+
+    /* Botón calcular más compacto */
+    .calculate-btn {
+        padding: 14px 20px;
+        font-size: 1rem;
+    }
+
+    /* Resultados en columna única */
+    .row.g-4 > .col-md-4 {
+        width: 100%;
+    }
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.3px;
+}
+
+.tab-btn:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tab-btn.active {
+    color: var(--primary-gold);
+    border-bottom-color: var(--primary-gold);
+}
+
+/* ── Calculadora de Refinado ─────────────────────────────────────────────── */
+
+.label-tiny {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.res-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    min-width: 64px;
+}
+
+.res-btn img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.res-btn:hover {
+    border-color: rgba(212, 175, 55, 0.5);
+    color: #fff;
+}
+
+.res-btn.active {
+    background: rgba(212, 175, 55, 0.12);
+    border-color: var(--primary-gold);
+    color: var(--secondary-gold);
+}
+
+.ref-mat-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px 16px;
+    min-width: 170px;
+}
+
+.ref-mat-card--result {
+    border-color: rgba(212, 175, 55, 0.3);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.ref-result-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 14px;
+    padding: 20px 24px;
+}
+
+.ref-cost-big {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--secondary-gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ref-breakdown-block {
+    flex: 1;
+    min-width: 200px;
+}
+
+.ref-breakdown {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.65);
+    padding: 3px 0;
+}
+
+.ref-breakdown span:last-child {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.ref-breakdown--total {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin-top: 4px;
+    padding-top: 6px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.ref-breakdown--total span {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Highlight al copiar precio */
+.field-highlight {
+    transition: box-shadow 0.2s;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.6) !important;
+}
