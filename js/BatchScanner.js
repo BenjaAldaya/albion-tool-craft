@@ -51,7 +51,8 @@ class BatchScanner {
 
     // ─── API fetch ────────────────────────────────────────────────────────────
 
-    async _fetchBatch(ids, quality) {
+    // Para materiales: solo necesitamos sell_price_min (lo que pagamos al comprar)
+    async _fetchBatch(ids, quality, maxAgeDays = 7) {
         if (!ids.length) return {};
         const q = quality !== null ? `&qualities=${quality}` : '';
         const url = `${this.api.baseURL}/${ids.join(',')}?locations=${this.allCities}${q}`;
@@ -59,14 +60,58 @@ class BatchScanner {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
+        const now = Date.now();
+        const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
+
+        const result = {};
+        for (const entry of data) {
+            if (quality !== null && entry.quality !== quality) continue;
+            const isBM  = entry.city === 'Black Market';
+            const price = isBM ? entry.buy_price_max : entry.sell_price_min;
+            if (!price) continue;
+
+            const dateStr = isBM ? entry.buy_price_max_date : entry.sell_price_min_date;
+            if (dateStr) {
+                const age = now - new Date(dateStr).getTime();
+                if (age > maxAgeMs) continue;
+            }
+
+            if (!result[entry.item_id]) result[entry.item_id] = {};
+            result[entry.item_id][entry.city] = price;
+        }
+        return result;
+    }
+
+    // Para items (armas): guardamos AMBOS precios para detectar outliers
+    async _fetchItemBatch(ids, quality, maxAgeDays = 3) {
+        if (!ids.length) return {};
+        const q = quality !== null ? `&qualities=${quality}` : '';
+        const url = `${this.api.baseURL}/${ids.join(',')}?locations=${this.allCities}${q}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const now = Date.now();
+        const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
+
         const result = {};
         for (const entry of data) {
             if (quality !== null && entry.quality !== quality) continue;
             const isBM = entry.city === 'Black Market';
-            const price = isBM ? entry.buy_price_max : entry.sell_price_min;
-            if (!price) continue;
+
+            // Usamos la fecha del precio más relevante para el frescura
+            const dateStr = isBM ? entry.buy_price_max_date : entry.sell_price_min_date;
+            if (dateStr) {
+                const age = now - new Date(dateStr).getTime();
+                if (age > maxAgeMs) continue;
+            }
+
+            const sellMin = isBM ? 0 : (entry.sell_price_min || 0);
+            const buyMax  = entry.buy_price_max || 0;
+            if (!sellMin && !buyMax) continue;
+
             if (!result[entry.item_id]) result[entry.item_id] = {};
-            result[entry.item_id][entry.city] = price;
+            result[entry.item_id][entry.city] = { sellMin, buyMax };
         }
         return result;
     }
@@ -90,6 +135,28 @@ class BatchScanner {
         return best;
     }
 
+    // Para armas: encuentra el mejor precio de venta con sanity check
+    // - Black Market: usa buy_price_max (único precio disponible)
+    // - Ciudad normal: si sell_price_min > buy_price_max * 2 → es un outlier, usa buy_price_max
+    // - Si buy_price_max = 0 en una ciudad normal → nadie comprando, se descarta
+    _bestSellItem(cityMap) {
+        let best = { city: null, price: 0 };
+        for (const [city, data] of Object.entries(cityMap || {})) {
+            const { sellMin = 0, buyMax = 0 } = data;
+            let effective;
+
+            if (city === 'Black Market') {
+                effective = buyMax;
+            } else {
+                if (!buyMax) continue; // sin compradores activos → mercado muerto
+                effective = (sellMin && sellMin <= buyMax * 2) ? sellMin : buyMax;
+            }
+
+            if (effective > best.price) best = { city, price: effective };
+        }
+        return best;
+    }
+
     // ─── Profit calc ──────────────────────────────────────────────────────────
 
     _calcProfit(item, itemPricesMap, matPricesMap, returnRate, taxRate, sellTaxRate) {
@@ -97,7 +164,7 @@ class BatchScanner {
         const apiName = this._itemApiName(key, tier, enchant);
         if (!apiName) return null;
 
-        const { city: sellCity, price: sellPrice } = this._bestSell(itemPricesMap[apiName]);
+        const { city: sellCity, price: sellPrice } = this._bestSellItem(itemPricesMap[apiName]);
         if (!sellPrice) return null;
 
         const MAT_LABELS = { LEATHER: 'Cuero', METALBAR: 'Barras', PLANKS: 'Tablas', CLOTH: 'Tela', artifact: 'Artefacto' };
@@ -130,8 +197,11 @@ class BatchScanner {
             };
         }
 
+        // Black Market = venta instantánea a NPC, sin impuesto de venta
+        const effectiveSellTax = sellCity === 'Black Market' ? 0 : sellTaxRate;
+
         const totalCost  = matCost + taxRate;
-        const revenue    = sellPrice * (1 - sellTaxRate);
+        const revenue    = sellPrice * (1 - effectiveSellTax);
         const profit     = revenue - totalCost;
         const profitPct  = totalCost > 0 ? (profit / totalCost) * 100 : 0;
 
@@ -192,13 +262,12 @@ class BatchScanner {
         const itemPrices = {};
         const matPrices  = {};
 
-        const fetchAll = async (chunks, target, quality) => {
-            // 3 concurrent batches at a time
+        const fetchAll = async (chunks, target, quality, maxAgeDays, fetchFn) => {
             for (let i = 0; i < chunks.length; i += 3) {
                 await Promise.all(
                     chunks.slice(i, i + 3).map(async c => {
                         try {
-                            Object.assign(target, await this._fetchBatch(c, quality));
+                            Object.assign(target, await fetchFn(c, quality, maxAgeDays));
                         } catch (e) { console.warn('Batch fetch failed:', e); }
                         doneChunks++;
                         onProgress?.(
@@ -210,8 +279,10 @@ class BatchScanner {
             }
         };
 
-        await fetchAll(itemChunks, itemPrices, 1);   // weapons: quality=1
-        await fetchAll(matChunks,  matPrices,  null); // materials: any quality
+        // Armas: _fetchItemBatch (guarda sellMin+buyMax para sanity check), máx 3 días
+        await fetchAll(itemChunks, itemPrices, 1,    3, this._fetchItemBatch.bind(this));
+        // Materiales: _fetchBatch normal (solo sell_price_min), máx 7 días
+        await fetchAll(matChunks,  matPrices,  null, 7, this._fetchBatch.bind(this));
 
         onProgress?.(92, 'Calculando profits...');
 
@@ -312,40 +383,86 @@ function renderScanResults(minProfitPct = 0) {
         return;
     }
 
-    tbody.innerHTML = filtered.map((r, idx) => {
-        const sign      = r.profit >= 0 ? '+' : '';
-        const color     = r.profit >= 0 ? '#7ec85c' : '#e87676';
-        const pctColor  = r.profitPct >= 15 ? '#7ec85c' : r.profitPct >= 5 ? '#f0c040' : '#e87676';
-        const enchTxt   = r.enchant > 0 ? `.${r.enchant}` : '';
-        const imgUrl    = getItemImageUrl(r.key, r.tier, r.enchant, 1);
-        const matCols   = Object.values(r.materials).map(m =>
-            `<span class="scan-mat-chip">${m.label} <strong>${_fmtSilver(m.price)}</strong> <span style="opacity:.5;font-size:.7em;">${m.buyCity?.slice(0,3) ?? '?'}</span></span>`
-        ).join('');
+    // Agrupar por displayName y ordenar grupos por mejor profit
+    const groups = new Map();
+    filtered.forEach(r => {
+        if (!groups.has(r.displayName)) groups.set(r.displayName, []);
+        groups.get(r.displayName).push(r);
+    });
+    groups.forEach(items => items.sort((a, b) => b.profit - a.profit));
+    const sortedGroups = [...groups.entries()].sort((a, b) => b[1][0].profit - a[1][0].profit);
 
-        return `
-        <tr class="scan-row${r.profit > 0 ? ' scan-row-profit' : ''}">
-            <td class="scan-item-cell">
-                <img src="${imgUrl}" class="scan-item-img" alt="" onerror="this.style.opacity='.2'">
-                <span class="scan-item-name">${r.displayName}</span>
-            </td>
-            <td class="scan-tier-cell">T${r.tier}${enchTxt}</td>
-            <td class="scan-city-cell">${r.sellCity ?? '—'}</td>
-            <td class="text-end scan-price-cell">${_fmtSilver(r.sellPrice)}</td>
-            <td class="scan-mat-cell">${matCols}</td>
-            <td class="text-end" style="color:${color};font-weight:700;">${sign}${_fmtSilver(r.profit)}</td>
-            <td class="text-end" style="color:${pctColor};font-weight:700;">${r.profitPct.toFixed(1)}%</td>
-            <td>
-                <button class="scan-add-btn" title="Agregar al día" onclick="addScannerResultToDay(${idx})">
-                    <i class="bi bi-plus-circle-fill"></i>
-                </button>
+    let html = '';
+    sortedGroups.forEach(([groupName, items], groupIdx) => {
+        const best     = items[0];
+        const imgUrl   = getItemImageUrl(best.key, best.tier, best.enchant, 1);
+        const sign     = best.profit >= 0 ? '+' : '';
+        const color    = best.profit >= 0 ? '#7ec85c' : '#e87676';
+        const pctColor = best.profitPct >= 15 ? '#7ec85c' : best.profitPct >= 5 ? '#f0c040' : '#e87676';
+        const groupId  = `scan-group-${groupIdx}`;
+
+        html += `<tr class="scan-group-header" onclick="toggleScanGroup('${groupId}')">
+            <td colspan="8">
+                <div class="scan-group-header-inner">
+                    <div class="scan-group-left">
+                        <i class="bi bi-chevron-down scan-group-chevron" id="${groupId}-chevron"></i>
+                        <img src="${imgUrl}" class="scan-group-img" alt="" onerror="this.style.opacity='.2'">
+                        <span class="scan-group-name">${groupName}</span>
+                        <span class="scan-group-badge">${items.length} variante${items.length > 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="scan-group-right">
+                        <span style="color:${color};font-weight:700;font-size:.82rem;">${sign}${_fmtSilver(best.profit)}</span>
+                        <span style="color:${pctColor};font-size:.75rem;margin-left:6px;">${best.profitPct.toFixed(1)}%</span>
+                    </div>
+                </div>
             </td>
         </tr>`;
-    }).join('');
+
+        items.forEach(r => {
+            const idx      = _scanResults.indexOf(r);
+            const rsign    = r.profit >= 0 ? '+' : '';
+            const rcolor   = r.profit >= 0 ? '#7ec85c' : '#e87676';
+            const rpctCol  = r.profitPct >= 15 ? '#7ec85c' : r.profitPct >= 5 ? '#f0c040' : '#e87676';
+            const enchTxt  = r.enchant > 0 ? `.${r.enchant}` : '';
+            const rImgUrl  = getItemImageUrl(r.key, r.tier, r.enchant, 1);
+            const matCols  = Object.values(r.materials).map(m =>
+                `<span class="scan-mat-chip">${m.label} <strong>${_fmtSilver(m.price)}</strong> <span style="opacity:.5;font-size:.7em;">${m.buyCity?.slice(0,3) ?? '?'}</span></span>`
+            ).join('');
+
+            html += `<tr class="scan-row scan-subrow${r.profit > 0 ? ' scan-row-profit' : ''}" data-group="${groupId}">
+                <td class="scan-item-cell scan-subrow-indent">
+                    <img src="${rImgUrl}" class="scan-item-img" alt="" onerror="this.style.opacity='.2'">
+                    <span class="scan-item-name">${r.displayName}</span>
+                </td>
+                <td class="scan-tier-cell">T${r.tier}${enchTxt}</td>
+                <td class="scan-city-cell">${r.sellCity ?? '—'}</td>
+                <td class="text-end scan-price-cell">${_fmtSilver(r.sellPrice)}</td>
+                <td class="scan-mat-cell">${matCols}</td>
+                <td class="text-end" style="color:${rcolor};font-weight:700;">${rsign}${_fmtSilver(r.profit)}</td>
+                <td class="text-end" style="color:${rpctCol};font-weight:700;">${r.profitPct.toFixed(1)}%</td>
+                <td>
+                    <button class="scan-add-btn" title="Agregar al día" onclick="addScannerResultToDay(${idx})">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+    });
+
+    tbody.innerHTML = html;
 }
 
 function filterScanResults() {
     const cfg = _getScanConfig();
     renderScanResults(cfg.minProfitPct);
+}
+
+function toggleScanGroup(groupId) {
+    const rows    = document.querySelectorAll(`[data-group="${groupId}"]`);
+    const chevron = document.getElementById(`${groupId}-chevron`);
+    const hiding  = !rows[0]?.classList.contains('scan-subrow-hidden');
+    rows.forEach(r => r.classList.toggle('scan-subrow-hidden', hiding));
+    chevron?.classList.toggle('scan-group-chevron-collapsed', hiding);
 }
 
 function selectAllCategories()  { document.querySelectorAll('.scan-cat-cb').forEach(cb => cb.checked = true);  }

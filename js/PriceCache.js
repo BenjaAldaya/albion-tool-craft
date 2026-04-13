@@ -2,13 +2,23 @@
  * Caché de precios de materiales por tier/encantamiento/ciudad
  */
 
-const PRICE_CACHE_KEY = 'albionPriceCache';
+const PRICE_CACHE_KEY   = 'albionPriceCache';
+const PRICE_CACHE_TTL_H = 6; // horas antes de considerar el cache viejo
 
 function getPriceCacheKey() {
     const tier    = document.getElementById('tier').value;
     const enchant = document.getElementById('enchantment').value;
     const city    = document.getElementById('citySelector').value;
     return `T${tier}_${enchant}_${city}`;
+}
+
+function _cacheAgeLabel(savedAt) {
+    const diff = Date.now() - savedAt;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60)   return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)    return `${hrs}h`;
+    return `${Math.floor(hrs / 24)}d`;
 }
 
 function savePriceCache() {
@@ -24,7 +34,7 @@ function savePriceCache() {
     if (!hasAny) return;
 
     const cache = JSON.parse(localStorage.getItem(PRICE_CACHE_KEY) || '{}');
-    cache[getPriceCacheKey()] = { ...inputs, updatedAt: new Date().toLocaleTimeString() };
+    cache[getPriceCacheKey()] = { ...inputs, savedAt: Date.now() };
     localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(cache));
 }
 
@@ -33,6 +43,12 @@ function loadPriceCache() {
     const cached = cache[getPriceCacheKey()];
     const badge  = document.getElementById('priceCacheBadge');
     if (!cached) { if (badge) badge.style.display = 'none'; return; }
+
+    // Migración: entradas viejas tienen updatedAt (string) en vez de savedAt (timestamp)
+    const savedAt = typeof cached.savedAt === 'number' ? cached.savedAt : null;
+    const ageMs   = savedAt ? Date.now() - savedAt : Infinity;
+    const stale   = ageMs > PRICE_CACHE_TTL_H * 60 * 60 * 1000;
+    const label   = savedAt ? _cacheAgeLabel(savedAt) : 'viejo';
 
     const map = {
         leather: 'leatherPrice', bars: 'barsPrice',
@@ -44,8 +60,17 @@ function loadPriceCache() {
         const el = document.getElementById(id);
         if (el && cached[field] > 0) { el.value = cached[field]; loaded = true; }
     });
-    if (badge) {
-        badge.innerHTML = loaded ? `<i class="bi bi-lightning-fill"></i> Cache (${cached.updatedAt})` : '';
-        badge.style.display = loaded ? '' : 'none';
+
+    if (badge && loaded) {
+        const icon    = stale ? 'bi-exclamation-triangle-fill' : 'bi-lightning-fill';
+        const color   = stale ? 'color:#f0a040;' : '';
+        const tooltip = stale ? ` title="Cache desactualizado (>${PRICE_CACHE_TTL_H}h). Recargá los precios."` : '';
+        badge.innerHTML = `<i class="bi ${icon}" style="${color}"></i> Cache (${label})`;
+        badge.style.display = '';
+        badge.setAttribute('style', color ? `cursor:help;${color}` : '');
+        if (tooltip) badge.setAttribute('title', `Cache desactualizado (>${PRICE_CACHE_TTL_H}h). Recargá los precios.`);
+        else badge.removeAttribute('title');
+    } else if (badge) {
+        badge.style.display = 'none';
     }
 }

@@ -1310,3 +1310,92 @@ body {
 .scan-add-btn:hover {
     background: rgba(212,175,55,.15);
 }
+
+/* Group headers */
+.scan-group-header {
+    background: rgba(255,255,255,.035);
+    cursor: pointer;
+    border-top: 1px solid rgba(255,255,255,.09);
+}
+
+.scan-group-header:hover {
+    background: rgba(255,255,255,.06);
+}
+
+.scan-group-header td {
+    padding: 0 !important;
+}
+
+.scan-group-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+}
+
+.scan-group-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.scan-group-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.scan-group-chevron {
+    font-size: .68rem;
+    color: rgba(255,255,255,.35);
+    transition: transform .2s ease;
+    flex-shrink: 0;
+}
+
+.scan-group-chevron-collapsed {
+    transform: rotate(-90deg);
+}
+
+.scan-group-img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.scan-group-name {
+    font-weight: 700;
+    font-size: .82rem;
+    color: rgba(255,255,255,.9);
+}
+
+.scan-group-badge {
+    font-size: .64rem;
+    padding: 2px 8px;
+    background: rgba(255,255,255,.08);
+    border-radius: 10px;
+    color: rgba(255,255,255,.45);
+    font-weight: 500;
+}
+
+/* Sub-rows */
+.scan-subrow-indent {
+    padding-left: 32px !important;
+}
+
+.scan-subrow {
+    border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.scan-subrow td {
+    background: rgba(0,0,0,.12);
+}
+
+.scan-subrow:last-of-type {
+    border-bottom: 2px solid rgba(255,255,255,.06);
+}
+
+.scan-subrow-hidden {
+    display: none;
+}
