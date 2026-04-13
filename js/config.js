@@ -472,7 +472,12 @@ const AlbionConfig = {
     // Viene directamente del archivo item_api_names_completo.js
     ITEM_API_NAMES: typeof ITEM_API_NAMES !== 'undefined' ? ITEM_API_NAMES : {},
 
-    API_URL: "https://www.albion-online-data.com/api/v2/stats/prices",
+    API_URLS: {
+        AMERICAS: "https://www.albion-online-data.com/api/v2/stats/prices",
+        EUROPE:   "https://europe.albion-online-data.com/api/v2/stats/prices",
+        ASIA:     "https://asia.albion-online-data.com/api/v2/stats/prices"
+    },
+    API_URL: "https://www.albion-online-data.com/api/v2/stats/prices", // backward compat
 
     CITIES: {
         CAERLEON: "Caerleon",
@@ -480,6 +485,7 @@ const AlbionConfig = {
         FORT_STERLING: "Fort Sterling",
         LYMHURST: "Lymhurst",
         MARTLOCK: "Martlock",
-        THETFORD: "Thetford"
+        THETFORD: "Thetford",
+        BLACK_MARKET: "Black Market"
     }
 };
