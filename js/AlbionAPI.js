@@ -71,19 +71,23 @@ class AlbionAPI {
 
         data.forEach(item => {
             const itemId = item.item_id;
+
+            // Black Market: los NPCs COMPRAN items → precio efectivo es buy_price_max
+            // Ciudades normales: los jugadores VENDEN items → precio efectivo es sell_price_min
+            const isBM           = item.city === 'Black Market';
+            const effectivePrice = isBM ? (item.buy_price_max || 0) : (item.sell_price_min || 0);
+
             const existing = prices[itemId];
-            // El API devuelve una entry por cada calidad (1-5).
-            // Solo sobreescribir si: no hay entry existente, o la existente
-            // tiene precio 0 y esta tiene precio real.
-            if (!existing || (existing.sellPriceMin === 0 && item.sell_price_min > 0)) {
+            if (!existing || (existing.sellPriceMin === 0 && effectivePrice > 0)) {
                 prices[itemId] = {
-                    sellPriceMin: item.sell_price_min || 0,
-                    sellPriceMax: item.sell_price_max || 0,
-                    buyPriceMin: item.buy_price_min || 0,
-                    buyPriceMax: item.buy_price_max || 0,
-                    city: item.city,
-                    quality: item.quality,
-                    lastUpdate: item.sell_price_min_date
+                    sellPriceMin: effectivePrice,          // para BM = buy_price_max del NPC
+                    sellPriceMax: isBM ? (item.buy_price_max || 0) : (item.sell_price_max || 0),
+                    buyPriceMin:  item.buy_price_min || 0,
+                    buyPriceMax:  item.buy_price_max || 0,
+                    isBlackMarket: isBM,
+                    city:         item.city,
+                    quality:      item.quality,
+                    lastUpdate:   isBM ? item.buy_price_max_date : item.sell_price_min_date
                 };
             }
         });
@@ -221,8 +225,19 @@ class AlbionAPI {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         return data
-            .filter(d => d.quality === quality && d.sell_price_min > 0)
-            .map(d => ({ city: d.city, price: d.sell_price_min }))
+            .filter(d => {
+                if (d.quality !== quality) return false;
+                const isBM = d.city === 'Black Market';
+                return isBM ? d.buy_price_max > 0 : d.sell_price_min > 0;
+            })
+            .map(d => {
+                const isBM = d.city === 'Black Market';
+                return {
+                    city:          d.city,
+                    price:         isBM ? d.buy_price_max : d.sell_price_min,
+                    isBlackMarket: isBM,
+                };
+            })
             .sort((a, b) => b.price - a.price);
     }
 }

@@ -485,6 +485,7 @@ const AlbionConfig = {
         FORT_STERLING: "Fort Sterling",
         LYMHURST: "Lymhurst",
         MARTLOCK: "Martlock",
-        THETFORD: "Thetford"
+        THETFORD: "Thetford",
+        BLACK_MARKET: "Black Market"
     }
 };
