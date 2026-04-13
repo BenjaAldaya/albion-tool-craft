@@ -288,30 +288,49 @@ function _renderTotals() {
     const profitColor = totalProfit >= 0 ? '#7ec85c' : '#e87676';
     const sign        = totalProfit >= 0 ? '+' : '';
 
-    // Agregar materiales de todos los crafteos
+    // Agregar materiales de todos los crafteos — key = apiName para separar por tier/enchant
     const RENDER = 'https://render.albiononline.com/v1/item/';
+
+    // Extrae "T5.1" desde "T5_LEATHER@1" o "T6" desde "T6_METALBAR"
+    const _tierLabel = apiName => {
+        const m = apiName?.match(/^T(\d)_.*?(?:@(\d))?$/);
+        return m ? `T${m[1]}${m[2] ? '.' + m[2] : ''}` : '';
+    };
+
     const aggMats = {};
     dayCrafts.forEach(c => {
-        Object.entries(c.materials).forEach(([type, mat]) => {
-            if (!aggMats[type]) aggMats[type] = { label: mat.label, apiName: mat.apiName, totalQty: 0, totalCost: 0 };
-            aggMats[type].totalQty  += mat.quantity;
-            aggMats[type].totalCost += mat.quantity * mat.price;
+        Object.entries(c.materials).forEach(([, mat]) => {
+            const key = mat.apiName || mat.label;          // único por tier+enchant
+            if (!aggMats[key]) aggMats[key] = {
+                label:     mat.label,
+                apiName:   mat.apiName,
+                tierLabel: _tierLabel(mat.apiName),
+                totalQty:  0,
+                totalCost: 0,
+            };
+            aggMats[key].totalQty  += mat.quantity;
+            aggMats[key].totalCost += mat.quantity * mat.price;
         });
     });
 
-    const matAggRows = Object.entries(aggMats).map(([, mat]) => {
-        const renderName = mat.apiName.replace(/@(\d)$/, '_LEVEL$1');
-        const avgPrice   = mat.totalQty > 0 ? mat.totalCost / mat.totalQty : 0;
-        return `
-        <tr>
-            <td><img src="${RENDER}${renderName}.png?size=40" width="18" height="18"
-                     style="border-radius:3px;object-fit:contain;" onerror="this.style.display='none'"></td>
-            <td style="font-size:.74rem;">${mat.label}</td>
-            <td style="text-align:right;font-size:.74rem;font-weight:700;color:#f0c040;">${mat.totalQty.toLocaleString()}</td>
-            <td style="text-align:right;font-size:.7rem;color:rgba(255,255,255,.55);">${avgPrice > 0 ? _fmtSilver(avgPrice) : '—'}</td>
-            <td style="text-align:right;font-size:.74rem;color:#e87676;">${_fmtSilver(mat.totalCost)}</td>
-        </tr>`;
-    }).join('');
+    const matAggRows = Object.entries(aggMats)
+        .sort((a, b) => b[1].totalCost - a[1].totalCost)   // más caro primero
+        .map(([, mat]) => {
+            const renderName = mat.apiName?.replace(/@(\d)$/, '_LEVEL$1') ?? '';
+            const avgPrice   = mat.totalQty > 0 ? mat.totalCost / mat.totalQty : 0;
+            const tierBadge  = mat.tierLabel
+                ? `<span style="font-size:.6rem;color:#f0c040;margin-right:3px;">${mat.tierLabel}</span>`
+                : '';
+            return `
+            <tr>
+                <td><img src="${RENDER}${renderName}.png?size=40" width="18" height="18"
+                         style="border-radius:3px;object-fit:contain;" onerror="this.style.display='none'"></td>
+                <td style="font-size:.74rem;">${tierBadge}${mat.label}</td>
+                <td style="text-align:right;font-size:.74rem;font-weight:700;color:#f0c040;">${mat.totalQty.toLocaleString()}</td>
+                <td style="text-align:right;font-size:.7rem;color:rgba(255,255,255,.55);">${avgPrice > 0 ? _fmtSilver(avgPrice) : '—'}</td>
+                <td style="text-align:right;font-size:.74rem;color:#e87676;">${_fmtSilver(mat.totalCost)}</td>
+            </tr>`;
+        }).join('');
 
     const journalChip = totalJournals > 0 ? `
         <div class="dc-total-chip">

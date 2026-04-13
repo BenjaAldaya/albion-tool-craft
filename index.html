@@ -498,6 +498,14 @@
                                    value="0" step="1">
                         </div>
                         <div class="scan-opt-group">
+                            <label class="label-tiny">Calidad mínima</label>
+                            <select id="scanItemQuality" class="form-control scan-opt-input" style="padding:6px 8px;" onchange="filterScanResults()">
+                                <option value="1" selected>Cualquiera</option>
+                                <option value="2">Good+</option>
+                                <option value="3">Outstanding+</option>
+                            </select>
+                        </div>
+                        <div class="scan-opt-group">
                             <label class="label-tiny">Impuesto de venta</label>
                             <div class="scan-sell-tax-opts">
                                 <label><input type="radio" name="scanSellTax" value="0.065" checked> Sell Order 6.5%</label>

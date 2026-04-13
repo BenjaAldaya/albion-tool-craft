@@ -82,24 +82,21 @@ class BatchScanner {
         return result;
     }
 
-    // Para items (armas): guardamos AMBOS precios para detectar outliers
-    async _fetchItemBatch(ids, quality, maxAgeDays = 3) {
+    // Para items (armas): pide calidades 1,2,3 en un solo request
+    // Estructura: { apiName: { 1: { city: {sellMin,buyMax} }, 2: {...}, 3: {...} } }
+    async _fetchItemBatch(ids, _quality, maxAgeDays = 3) {
         if (!ids.length) return {};
-        const q = quality !== null ? `&qualities=${quality}` : '';
-        const url = `${this.api.baseURL}/${ids.join(',')}?locations=${this.allCities}${q}`;
+        const url = `${this.api.baseURL}/${ids.join(',')}?locations=${this.allCities}&qualities=1,2,3`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
-        const now = Date.now();
+        const now      = Date.now();
         const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
 
         const result = {};
         for (const entry of data) {
-            if (quality !== null && entry.quality !== quality) continue;
-            const isBM = entry.city === 'Black Market';
-
-            // Usamos la fecha del precio más relevante para el frescura
+            const isBM    = entry.city === 'Black Market';
             const dateStr = isBM ? entry.buy_price_max_date : entry.sell_price_min_date;
             if (dateStr) {
                 const age = now - new Date(dateStr).getTime();
@@ -110,8 +107,10 @@ class BatchScanner {
             const buyMax  = entry.buy_price_max || 0;
             if (!sellMin && !buyMax) continue;
 
-            if (!result[entry.item_id]) result[entry.item_id] = {};
-            result[entry.item_id][entry.city] = { sellMin, buyMax };
+            const q = entry.quality; // 1, 2 o 3
+            if (!result[entry.item_id])    result[entry.item_id]    = {};
+            if (!result[entry.item_id][q]) result[entry.item_id][q] = {};
+            result[entry.item_id][q][entry.city] = { sellMin, buyMax };
         }
         return result;
     }
@@ -157,6 +156,19 @@ class BatchScanner {
         return best;
     }
 
+    // Itera sobre las calidades disponibles (3→2→1) y devuelve la de mayor precio
+    // qualityMap: { 1: cityMap, 2: cityMap, 3: cityMap }
+    _bestSellItemMultiQuality(qualityMap) {
+        let best = { city: null, price: 0, quality: null };
+        for (const q of [3, 2, 1]) {
+            const cityMap = qualityMap?.[q];
+            if (!cityMap) continue;
+            const { city, price } = this._bestSellItem(cityMap);
+            if (price > best.price) best = { city, price, quality: q };
+        }
+        return best;
+    }
+
     // ─── Profit calc ──────────────────────────────────────────────────────────
 
     _calcProfit(item, itemPricesMap, matPricesMap, returnRate, taxRate, sellTaxRate) {
@@ -164,7 +176,9 @@ class BatchScanner {
         const apiName = this._itemApiName(key, tier, enchant);
         if (!apiName) return null;
 
-        const { city: sellCity, price: sellPrice } = this._bestSellItem(itemPricesMap[apiName]);
+        // Elige el mejor precio disponible entre calidades 1, 2 y 3
+        const { city: sellCity, price: sellPrice, quality: foundQuality } =
+            this._bestSellItemMultiQuality(itemPricesMap[apiName]);
         if (!sellPrice) return null;
 
         const MAT_LABELS = { LEATHER: 'Cuero', METALBAR: 'Barras', PLANKS: 'Tablas', CLOTH: 'Tela', artifact: 'Artefacto' };
@@ -208,6 +222,7 @@ class BatchScanner {
         return {
             key, recipe, tier, enchant, apiName,
             displayName: recipe.displayName,
+            quality: foundQuality,   // calidad real del precio encontrado (1, 2 o 3)
             sellCity, sellPrice,
             matCost, totalCost, revenue, profit, profitPct,
             returnRate, taxRate,
@@ -279,8 +294,8 @@ class BatchScanner {
             }
         };
 
-        // Armas: _fetchItemBatch (guarda sellMin+buyMax para sanity check), máx 3 días
-        await fetchAll(itemChunks, itemPrices, 1,    3, this._fetchItemBatch.bind(this));
+        // Armas: _fetchItemBatch fetches calidades 1,2,3 en un solo request
+        await fetchAll(itemChunks, itemPrices, null, 3, this._fetchItemBatch.bind(this));
         // Materiales: _fetchBatch normal (solo sell_price_min), máx 7 días
         await fetchAll(matChunks,  matPrices,  null, 7, this._fetchBatch.bind(this));
 
@@ -319,13 +334,14 @@ function initScannerTab() {
 }
 
 function _getScanConfig() {
-    const returnRate  = parseFloat(document.getElementById('scanReturnRate')?.value ?? 24.8) / 100;
-    const taxRate     = parseFloat(document.getElementById('scanTaxRate')?.value ?? 300);
-    const minProfit   = parseFloat(document.getElementById('scanMinProfit')?.value ?? 0);
-    const sellTaxEl   = document.querySelector('input[name="scanSellTax"]:checked');
-    const sellTaxRate = parseFloat(sellTaxEl?.value ?? 0.065);
-    const categories  = [...document.querySelectorAll('.scan-cat-cb:checked')].map(el => el.value);
-    return { returnRate, taxRate, minProfitPct: minProfit, sellTaxRate, categories };
+    const returnRate   = parseFloat(document.getElementById('scanReturnRate')?.value ?? 24.8) / 100;
+    const taxRate      = parseFloat(document.getElementById('scanTaxRate')?.value ?? 300);
+    const minProfit    = parseFloat(document.getElementById('scanMinProfit')?.value ?? 0);
+    const sellTaxEl    = document.querySelector('input[name="scanSellTax"]:checked');
+    const sellTaxRate  = parseFloat(sellTaxEl?.value ?? 0.065);
+    const minQuality   = parseInt(document.getElementById('scanItemQuality')?.value ?? 1);
+    const categories   = [...document.querySelectorAll('.scan-cat-cb:checked')].map(el => el.value);
+    return { returnRate, taxRate, minProfitPct: minProfit, sellTaxRate, minQuality, categories };
 }
 
 async function startScan() {
@@ -354,7 +370,7 @@ async function startScan() {
                 txt.textContent  = msg;
             }
         );
-        renderScanResults(cfg.minProfitPct);
+        renderScanResults(cfg.minProfitPct, cfg.minQuality);
         results.style.display = '';
     } catch (e) {
         txt.textContent = 'Error: ' + e.message;
@@ -364,9 +380,15 @@ async function startScan() {
     }
 }
 
-function renderScanResults(minProfitPct = 0) {
+const Q_LABELS = { 1: 'Normal', 2: 'Good', 3: 'Outstanding', 4: 'Excellent', 5: 'Masterpiece' };
+const Q_COLORS = { 1: '#aaa', 2: '#7ec85c', 3: '#f0c040', 4: '#4fc3f7', 5: '#ce93d8' };
+
+function renderScanResults(minProfitPct = 0, minQuality = 1) {
     const onlyProfit = document.getElementById('scanOnlyProfitable')?.checked;
-    const filtered   = _scanResults.filter(r => !onlyProfit || r.profitPct >= minProfitPct);
+    const filtered   = _scanResults.filter(r =>
+        (!onlyProfit || r.profitPct >= minProfitPct) &&
+        (r.quality == null || r.quality >= minQuality)
+    );
 
     const total      = _scanResults.length;
     const shown      = filtered.length;
@@ -429,6 +451,12 @@ function renderScanResults(minProfitPct = 0) {
                 `<span class="scan-mat-chip">${m.label} <strong>${_fmtSilver(m.price)}</strong> <span style="opacity:.5;font-size:.7em;">${m.buyCity?.slice(0,3) ?? '?'}</span></span>`
             ).join('');
 
+            const qLabel = Q_LABELS[r.quality] ?? '';
+            const qColor = Q_COLORS[r.quality] ?? '#aaa';
+            const qBadge = r.quality
+                ? `<span style="font-size:.65rem;color:${qColor};border:1px solid ${qColor};border-radius:3px;padding:0 4px;margin-left:4px;white-space:nowrap;">${qLabel}</span>`
+                : '';
+
             html += `<tr class="scan-row scan-subrow${r.profit > 0 ? ' scan-row-profit' : ''}" data-group="${groupId}">
                 <td class="scan-item-cell scan-subrow-indent">
                     <img src="${rImgUrl}" class="scan-item-img" alt="" onerror="this.style.opacity='.2'">
@@ -436,7 +464,7 @@ function renderScanResults(minProfitPct = 0) {
                 </td>
                 <td class="scan-tier-cell">T${r.tier}${enchTxt}</td>
                 <td class="scan-city-cell">${r.sellCity ?? '—'}</td>
-                <td class="text-end scan-price-cell">${_fmtSilver(r.sellPrice)}</td>
+                <td class="text-end scan-price-cell">${_fmtSilver(r.sellPrice)}${qBadge}</td>
                 <td class="scan-mat-cell">${matCols}</td>
                 <td class="text-end" style="color:${rcolor};font-weight:700;">${rsign}${_fmtSilver(r.profit)}</td>
                 <td class="text-end" style="color:${rpctCol};font-weight:700;">${r.profitPct.toFixed(1)}%</td>
@@ -454,7 +482,7 @@ function renderScanResults(minProfitPct = 0) {
 
 function filterScanResults() {
     const cfg = _getScanConfig();
-    renderScanResults(cfg.minProfitPct);
+    renderScanResults(cfg.minProfitPct, cfg.minQuality);
 }
 
 function toggleScanGroup(groupId) {
@@ -479,7 +507,7 @@ function addScannerResultToDay(resultIdx) {
         itemName:        `T${r.tier}${enchTxt} ${r.displayName}`,
         tier:            r.tier,
         enchant:         r.enchant,
-        quality:         1,
+        quality:         r.quality ?? 2,
         quantity:        1,
         city:            r.sellCity || 'Caerleon',
         returnRate:      r.returnRate,
