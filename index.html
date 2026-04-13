@@ -35,6 +35,9 @@
                 <button class="tab-btn" data-tab="refiningTab">
                     <i class="bi bi-fire"></i> Refinado
                 </button>
+                <button class="tab-btn" data-tab="scannerTab">
+                    <i class="bi bi-search"></i> Scanner
+                </button>
             </div>
 
             <!-- Tab: Crafteo -->
@@ -458,6 +461,95 @@
                 </div>
             </div> <!-- /refiningTab -->
 
+            <!-- Tab: Scanner -->
+            <div id="scannerTab" class="tab-pane" style="display:none;">
+                <div class="config-card p-4 mb-4">
+                    <h4 class="section-title mb-3"><i class="bi bi-search"></i> Scanner de Crafteo Rentable</h4>
+                    <p style="color:rgba(255,255,255,.5);font-size:.82rem;margin-bottom:16px;">
+                        Selecciona categorías y el sistema analiza todas las combinaciones T4-T8 × .0-.4
+                        buscando los mejores precios de compra de materiales y venta en todas las ciudades.
+                    </p>
+
+                    <!-- Categorías -->
+                    <div class="label-tiny mb-2">Categorías de armas</div>
+                    <div class="scan-cat-actions mb-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="selectAllCategories()">Todas</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearAllCategories()">Ninguna</button>
+                    </div>
+                    <div class="scan-cat-grid" id="scannerCatGrid">
+                        <!-- generado por JS -->
+                    </div>
+
+                    <!-- Opciones -->
+                    <div class="scan-options-row mt-4">
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Retorno %</label>
+                            <input type="number" id="scanReturnRate" class="form-control scan-opt-input"
+                                   value="24.8" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Impuesto crafteo</label>
+                            <input type="number" id="scanTaxRate" class="form-control scan-opt-input"
+                                   value="300" min="0" step="10">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Min. Profit %</label>
+                            <input type="number" id="scanMinProfit" class="form-control scan-opt-input"
+                                   value="0" step="1">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Impuesto de venta</label>
+                            <div class="scan-sell-tax-opts">
+                                <label><input type="radio" name="scanSellTax" value="0.065" checked> Sell Order 6.5%</label>
+                                <label><input type="radio" name="scanSellTax" value="0.105"> Sin premium 10.5%</label>
+                                <label><input type="radio" name="scanSellTax" value="0"> Sin impuesto</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón + progress -->
+                    <div class="mt-4">
+                        <button class="btn btn-primary scan-start-btn" id="scanBtn" onclick="startScan()">
+                            <i class="bi bi-lightning-charge-fill"></i> Escanear todas las ciudades
+                        </button>
+                    </div>
+                    <div id="scanProgress" style="display:none;" class="mt-3">
+                        <div class="scan-progress-track">
+                            <div class="scan-progress-fill" id="scanProgressFill" style="width:0%"></div>
+                        </div>
+                        <div class="scan-progress-text" id="scanProgressText">Iniciando...</div>
+                    </div>
+                </div>
+
+                <!-- Resultados -->
+                <div id="scanResults" style="display:none;" class="config-card p-4">
+                    <div class="scan-results-header mb-3">
+                        <span class="scan-results-count" id="scanResultsCount"></span>
+                        <label class="scan-filter-label">
+                            <input type="checkbox" id="scanOnlyProfitable" checked onchange="filterScanResults()">
+                            Solo rentables
+                        </label>
+                    </div>
+                    <div class="scan-table-wrap">
+                        <table class="scan-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Tier</th>
+                                    <th>Vende en</th>
+                                    <th class="text-end">Precio venta</th>
+                                    <th>Materiales (mejor ciudad)</th>
+                                    <th class="text-end">Profit</th>
+                                    <th class="text-end">Margen</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="scanTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> <!-- /scannerTab -->
+
         </div> <!-- /main-container -->
         </div> <!-- /day-layout-main -->
 
@@ -519,10 +611,12 @@
     <script src="js/AppController.js?v=3"></script>
     <script src="js/SessionPanel.js?v=3"></script>
     <script src="js/RefineryCalculator.js?v=3"></script>
+    <script src="js/BatchScanner.js?v=1"></script>
     <script>
         initTabs();
         initRefineryTab();
         initDaySession();
+        initScannerTab();
 
         // Sincronizar selector de servidor del tab de refinado con el principal
         (function syncRefServerSelector() {
