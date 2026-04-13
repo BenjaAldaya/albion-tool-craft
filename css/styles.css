@@ -702,3 +702,330 @@ body {
     transition: box-shadow 0.2s;
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.6) !important;
 }
+
+/* ── Layout dos columnas (calculadora + panel día) ────────────────────────── */
+
+.day-layout {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 20px;
+    align-items: start;
+}
+
+.day-layout-main {
+    min-width: 0; /* previene overflow en grid */
+}
+
+.day-layout-side {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212,175,55,0.3) transparent;
+}
+
+.day-layout-side::-webkit-scrollbar { width: 4px; }
+.day-layout-side::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
+
+@media (max-width: 1100px) {
+    .day-layout {
+        grid-template-columns: 1fr;
+    }
+    .day-layout-side {
+        position: static;
+        max-height: none;
+        order: 2; /* debajo en mobile */
+    }
+}
+
+/* ── Panel "Crafteo del Día" ─────────────────────────────────────────────── */
+
+.day-panel {
+    background: #1a1a1a;
+    border-radius: 16px;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    overflow: hidden;
+}
+
+.day-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.day-panel-title {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--primary-gold);
+    letter-spacing: 0.2px;
+}
+
+.day-panel-badge {
+    display: inline-block;
+    background: var(--primary-gold);
+    color: #000;
+    font-size: 0.62rem;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: transform 0.2s;
+}
+
+.day-clear-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.3);
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    transition: color 0.15s, background 0.15s;
+}
+.day-clear-btn:hover { color: #e87676; background: rgba(232,118,118,0.1); }
+
+.day-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255,255,255,0.28);
+    font-size: 0.8rem;
+    line-height: 1.7;
+}
+
+.dc-list {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* ── Accordion card ──────────────────────────────────────────────────────── */
+
+.dc-card {
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+.dc-card:hover  { border-color: rgba(212,175,55,0.22); }
+.dc-card.dc-open { border-color: rgba(212,175,55,0.38); }
+
+.dc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dc-item-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.dc-title-block {
+    flex: 1;
+    min-width: 0;
+}
+
+.dc-item-name {
+    font-size: 0.76rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgba(255,255,255,0.92);
+}
+
+.dc-item-meta {
+    font-size: 0.63rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 1px;
+}
+
+.dc-profit-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dc-edit-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.18);
+    cursor: pointer;
+    padding: 2px 5px;
+    font-size: 0.65rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+}
+.dc-edit-btn:hover { color: var(--primary-gold); background: rgba(212,175,55,0.12); }
+
+.dc-del-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.18);
+    cursor: pointer;
+    padding: 2px 5px;
+    font-size: 0.68rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+}
+.dc-del-btn:hover { color: #e87676; background: rgba(232,118,118,0.12); }
+
+.dc-chevron {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.28);
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+}
+.dc-card.dc-open .dc-chevron { transform: rotate(180deg); }
+
+/* Cuerpo acordeón */
+.dc-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.2s ease;
+    padding: 0 10px;
+}
+.dc-card.dc-open .dc-body {
+    max-height: 700px;
+    padding: 4px 10px 12px;
+}
+
+.dc-section-label {
+    font-size: 0.57rem;
+    color: rgba(255,255,255,0.32);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.dc-mat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 4px;
+}
+.dc-mat-table th {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.3);
+    font-weight: 500;
+    padding: 2px 4px 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.dc-mat-table td {
+    padding: 4px 4px;
+    font-size: 0.72rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: middle;
+}
+.dc-mat-name  { color: rgba(255,255,255,0.8); }
+.dc-mat-qty   { text-align: right; color: #f0c040; font-weight: 700; }
+.dc-mat-price { text-align: right; color: rgba(255,255,255,0.45); }
+.dc-mat-total { text-align: right; color: #e87676; font-weight: 600; }
+
+.dc-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 7px 0;
+}
+
+.dc-info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.71rem;
+    color: rgba(255,255,255,0.5);
+    padding: 2px 0;
+}
+.dc-info-row strong { color: rgba(255,255,255,0.85); }
+
+.dc-profit-final {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 5px 0 2px;
+}
+
+.dc-profit-pct {
+    text-align: right;
+    font-size: 0.68rem;
+    opacity: 0.75;
+}
+
+/* ── Totales ─────────────────────────────────────────────────────────────── */
+
+.dc-totals {
+    margin: 0 8px 8px;
+    background: rgba(212,175,55,0.05);
+    border: 1px solid rgba(212,175,55,0.22);
+    border-radius: 12px;
+    padding: 13px 14px;
+}
+
+.dc-totals-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.dc-totals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.dc-total-chip {
+    background: rgba(0,0,0,0.22);
+    border-radius: 8px;
+    padding: 6px 9px;
+}
+
+.dc-total-chip-label {
+    display: block;
+    font-size: 0.57rem;
+    color: rgba(255,255,255,0.38);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+}
+
+.dc-total-chip-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+}
+
+.dc-total-profit-big {
+    text-align: center;
+    font-size: 1.65rem;
+    font-weight: 800;
+    padding: 8px 0 3px;
+    line-height: 1;
+}
+
+.dc-total-margin {
+    text-align: center;
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.38);
+    margin-bottom: 2px;
+}

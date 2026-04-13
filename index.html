@@ -11,9 +11,9 @@
 </head>
 
 <body>
-    <div class="container my-5">
+    <div class="container my-4">
 
-        <!-- ── Panel de Comparaciones (arriba) ── -->
+        <!-- ── Panel de Comparaciones (arriba, ancho completo) ── -->
         <div id="snapshotSidebar" style="display:none" class="mb-3 px-1">
             <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="text-warning fw-bold" style="font-size:.8rem"><i class="bi bi-bar-chart-fill"></i> Comparaciones</span>
@@ -22,6 +22,9 @@
             <div id="snapshotList" class="snap-strip"></div>
         </div>
 
+        <!-- ── Layout dos columnas ── -->
+        <div class="day-layout">
+        <div class="day-layout-main">
         <div class="main-container p-4">
 
             <!-- Tabs -->
@@ -301,7 +304,10 @@
                     <h1 class="mb-2" id="finalProfit"></h1>
                     <p class="mb-3 fs-5" id="profitPercentage"></p>
                     <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
-                        <button id="saveSnapshotBtn" class="btn btn-warning btn-lg">
+                        <button id="addToDayBtn" class="btn btn-warning btn-lg">
+                            <i class="bi bi-plus-circle-fill"></i> Agregar al Día
+                        </button>
+                        <button id="saveSnapshotBtn" class="btn btn-outline-warning btn-lg">
                             <i class="bi bi-bookmark-plus-fill"></i> Guardar en comparación
                         </button>
                     </div>
@@ -311,6 +317,7 @@
             </div>
 
             </div> <!-- /craftingTab -->
+
 
             <!-- Tab: Refinado -->
             <div id="refiningTab" class="tab-pane" style="display:none;">
@@ -451,6 +458,30 @@
             </div> <!-- /refiningTab -->
 
         </div> <!-- /main-container -->
+        </div> <!-- /day-layout-main -->
+
+        <!-- ── Panel lateral: Crafteo del Día ── -->
+        <div class="day-layout-side">
+            <div class="day-panel">
+                <div class="day-panel-header">
+                    <div>
+                        <span class="day-panel-title"><i class="bi bi-calendar-check-fill"></i> Crafteo del Día</span>
+                        <span id="dayCraftBadge" class="day-panel-badge"></span>
+                    </div>
+                    <button id="dayClearBtn" class="day-clear-btn" title="Limpiar sesión" style="display:none;">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+                <div id="dayCraftEmpty" class="day-empty-state">
+                    <i class="bi bi-plus-circle" style="font-size:2.4rem;display:block;margin-bottom:10px;opacity:0.2;"></i>
+                    Calculá un crafteo<br>y agregalo a la sesión
+                </div>
+                <div id="dayCraftList" class="dc-list"></div>
+                <div id="dayCraftTotals" class="dc-totals" style="display:none;"></div>
+            </div>
+        </div>
+
+        </div> <!-- /day-layout -->
     </div> <!-- /container -->
 
     <!-- Toast Container -->
@@ -485,10 +516,12 @@
     <script src="js/PriceCache.js"></script>
     <script src="js/SnapshotManager.js"></script>
     <script src="js/AppController.js"></script>
+    <script src="js/SessionPanel.js"></script>
     <script src="js/RefineryCalculator.js"></script>
     <script>
         initTabs();
         initRefineryTab();
+        initDaySession();
 
         // Sincronizar selector de servidor del tab de refinado con el principal
         (function syncRefServerSelector() {
