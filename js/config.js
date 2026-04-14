@@ -38,11 +38,11 @@ const AlbionConfig = {
     // Fama que otorga CADA UNIDAD de recurso según tier
     // Fuente: mecánica oficial del juego
     FAME_PER_RESOURCE: {
-        4: 15,
-        5: 45,
-        6: 135,
-        7: 405,
-        8: 1215
+        4: 22.5,
+        5: 90,
+        6: 270,
+        7: 645,
+        8: 1395
     },
 
     JOURNAL_FAME_REQUIRED: {
