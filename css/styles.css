@@ -1047,6 +1047,19 @@ body {
     margin-bottom: 4px;
 }
 
+.scan-cat-group-label {
+    flex-basis: 100%;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+.scan-cat-group-label:first-child {
+    margin-top: 0;
+}
+
 .scan-cat-chip {
     display: inline-flex;
     align-items: center;
