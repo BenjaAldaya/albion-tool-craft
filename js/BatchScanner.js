@@ -16,6 +16,18 @@ class BatchScanner {
         return [...cats].sort();
     }
 
+    static getArmorCategories() {
+        const cats = new Set();
+        Object.values(AlbionConfig.ARMOR_RECIPES).forEach(r => cats.add(r.category));
+        return [...cats].sort();
+    }
+
+    static getToolCategories() {
+        const cats = new Set();
+        Object.values(AlbionConfig.TOOL_RECIPES).forEach(r => cats.add(r.category));
+        return [...cats].sort();
+    }
+
     _itemApiName(key, tier, enchant) {
         const t = AlbionConfig.ITEM_API_NAMES?.[key];
         if (!t?.[tier]) return null;
@@ -37,7 +49,12 @@ class BatchScanner {
 
     _buildScanList(categories) {
         const items = [];
-        for (const [key, recipe] of Object.entries(AlbionConfig.WEAPON_RECIPES)) {
+        const allRecipes = {
+            ...AlbionConfig.WEAPON_RECIPES,
+            ...AlbionConfig.ARMOR_RECIPES,
+            ...AlbionConfig.TOOL_RECIPES,
+        };
+        for (const [key, recipe] of Object.entries(allRecipes)) {
             if (!categories.includes(recipe.category)) continue;
             for (let tier = 4; tier <= 8; tier++) {
                 if (!AlbionConfig.ITEM_API_NAMES?.[key]?.[tier]) continue;
@@ -185,7 +202,11 @@ class BatchScanner {
         let matCost = 0;
         const materials = {};
 
-        for (const [matKey, qty] of Object.entries(recipe.materials)) {
+        for (const [matKey, rawQty] of Object.entries(recipe.materials)) {
+            // Las herramientas de Avalon tienen cantidades dinámicas por tier: { 4: 20, 5: 90, ... }
+            const qty = typeof rawQty === 'object' ? (rawQty[tier] ?? 0) : rawQty;
+            if (!qty) continue;
+
             const isArtifact = matKey === 'artifact';
             const matApiName = isArtifact
                 ? this._artifactApiName(recipe.artifactKey, tier)
@@ -197,8 +218,8 @@ class BatchScanner {
             if (!matPrice) return null;
 
             const returned = isArtifact ? 0 : Math.round(qty * returnRate);
-            const netQty   = qty - returned;  // effective consumption (for cost calc)
-            const toBuyQty = qty;              // physical units to purchase
+            const netQty   = qty - returned;
+            const toBuyQty = qty;
 
             matCost += netQty * matPrice;
 
@@ -321,15 +342,23 @@ let _scannerInst  = null;
 function initScannerTab() {
     _scannerInst = new BatchScanner(uiManager.api);
 
-    const categories = BatchScanner.getWeaponCategories();
     const grid = document.getElementById('scannerCatGrid');
     if (!grid) return;
 
-    grid.innerHTML = categories.map(cat => `
-        <label class="scan-cat-chip">
-            <input type="checkbox" value="${cat}" class="scan-cat-cb">
-            <span>${cat}</span>
-        </label>
+    const groups = [
+        { label: 'Armas',        cats: BatchScanner.getWeaponCategories() },
+        { label: 'Armaduras',    cats: BatchScanner.getArmorCategories()  },
+        { label: 'Herramientas', cats: BatchScanner.getToolCategories()   },
+    ];
+
+    grid.innerHTML = groups.map(({ label, cats }) => `
+        <div class="scan-cat-group-label">${label}</div>
+        ${cats.map(cat => `
+            <label class="scan-cat-chip">
+                <input type="checkbox" value="${cat}" class="scan-cat-cb">
+                <span>${cat}</span>
+            </label>
+        `).join('')}
     `).join('');
 }
 

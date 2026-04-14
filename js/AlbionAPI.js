@@ -6,6 +6,46 @@ class AlbionAPI {
         const savedServer = localStorage.getItem('albionServer') || 'AMERICAS';
         this.baseURL = AlbionConfig.API_URLS[savedServer] || AlbionConfig.API_URLS.AMERICAS;
         this.defaultCity = AlbionConfig.CITIES.CAERLEON;
+        // Requests en vuelo: evita llamadas duplicadas simultáneas
+        this._inFlight = new Map();
+        // Caché de sesión para fetchAllCityPrices (TTL: 5 minutos)
+        this._cityPriceCache = new Map();
+        this._CITY_CACHE_TTL = 5 * 60 * 1000;
+    }
+
+    /**
+     * Hace un fetch con 1 retry automático ante error de red o HTTP
+     * @param {string} url
+     * @returns {Promise<any>} - datos JSON
+     * @private
+     */
+    async _fetchWithRetry(url) {
+        const attempt = async () => {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        };
+        try {
+            return await attempt();
+        } catch (err) {
+            await new Promise(r => setTimeout(r, 1000));
+            return attempt();
+        }
+    }
+
+    /**
+     * Ejecuta un fetch deduplicado: si ya hay un request en vuelo con la misma clave,
+     * devuelve esa misma promesa en lugar de lanzar una nueva.
+     * @param {string} key - clave única del request
+     * @param {Function} fetcher - función que retorna la promesa del fetch
+     * @returns {Promise<any>}
+     * @private
+     */
+    _deduped(key, fetcher) {
+        if (this._inFlight.has(key)) return this._inFlight.get(key);
+        const promise = fetcher().finally(() => this._inFlight.delete(key));
+        this._inFlight.set(key, promise);
+        return promise;
     }
 
     /**
@@ -43,17 +83,11 @@ class AlbionAPI {
      */
     async fetchPrices(itemNames, city = null, quality = 1) {
         const url = this._buildPriceURL(itemNames, city, quality);
+        const key = url;
 
         try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const data = await this._deduped(key, () => this._fetchWithRetry(url));
             return this._processPriceData(data);
-
         } catch (error) {
             console.error('Error al obtener precios de la API:', error);
             throw error;
@@ -219,12 +253,17 @@ class AlbionAPI {
      * @returns {Promise<Array>} [{city, price}] ordenado desc por precio
      */
     async fetchAllCityPrices(itemApiName, quality = 1) {
+        const cacheKey = `${itemApiName}|${quality}`;
+        const cached = this._cityPriceCache.get(cacheKey);
+        if (cached && (Date.now() - cached.ts) < this._CITY_CACHE_TTL) {
+            return cached.data;
+        }
+
         const cities = Object.values(AlbionConfig.CITIES).join(',');
         const url = `${this.baseURL}/${itemApiName}?locations=${cities}&qualities=${quality}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        return data
+
+        const data = await this._deduped(url, () => this._fetchWithRetry(url));
+        const result = data
             .filter(d => {
                 if (d.quality !== quality) return false;
                 const isBM = d.city === 'Black Market';
@@ -239,6 +278,9 @@ class AlbionAPI {
                 };
             })
             .sort((a, b) => b.price - a.price);
+
+        this._cityPriceCache.set(cacheKey, { data: result, ts: Date.now() });
+        return result;
     }
 }
 
