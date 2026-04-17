@@ -67,6 +67,7 @@ function addToDaySession() {
         craft.materials[type] = {
             label:       MAT_LABEL[type] || type,
             quantity:    mat.quantity,
+            neededQty:   analysis.materials.needed[type]?.quantity || 0,
             price:       mat.price || 0,
             apiName:     mat.apiName || '',
         };

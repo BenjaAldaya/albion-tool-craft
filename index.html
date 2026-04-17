@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div class="container my-4">
+    <div class="container-fluid px-4 my-4">
 
         <!-- ── Panel de Comparaciones (arriba, ancho completo) ── -->
         <div id="snapshotSidebar" style="display:none" class="mb-3 px-1">
@@ -168,10 +168,10 @@
                 </div>
 
                 <!-- 2 columnas: materiales | precio + journals -->
-                <div class="mat-price-columns" style="display:flex;gap:32px;align-items:flex-start;margin-bottom:1.5rem;">
+                <div class="mat-price-columns" style="display:flex;gap:32px;align-items:flex-start;margin-bottom:1.5rem;width:100%;">
 
                     <!-- Columna izquierda: materiales -->
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Materiales</div>
                         <div class="mat-grid" id="matGrid">
                             <div class="mat-cell" data-material="LEATHER">
@@ -210,7 +210,7 @@
                     <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch;margin-top:22px;"></div>
 
                     <!-- Columna derecha: precio de venta + journals -->
-                    <div style="display:flex;flex-direction:column;gap:20px;">
+                    <div style="display:flex;flex-direction:row;gap:40px;flex-wrap:wrap;align-items:flex-start;">
 
                         <!-- Precio de venta -->
                         <div>
@@ -218,7 +218,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi bi-currency-exchange" style="font-size:1.1rem;flex-shrink:0;color:#FFD700;"></i>
                                 <input type="number" id="itemPrice" class="form-control" placeholder="0"
-                                       min="0" value="95000" style="max-width:200px;">
+                                       min="0" value="95000" style="min-width:160px;max-width:260px;">
                             </div>
                             <div id="cityPriceChips" class="city-chips"></div>
                         </div>
@@ -257,7 +257,7 @@
                 <div class="mb-4">
                     <div style="border-left: 3px solid var(--primary-gold); background: rgba(0,0,0,0.25); border-radius:10px; padding:12px 14px;">
                         <div class="text-warning mb-2" style="font-size:0.75rem;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;"><i class="bi bi-cart4"></i> Lista de Compra</div>
-                        <table style="width:50%;margin:0 auto;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;">
                             <thead>
                                 <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                                     <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:left;" colspan="2">Material</th>
@@ -547,6 +547,7 @@
                                     <th>Vende en</th>
                                     <th class="text-end">Precio venta</th>
                                     <th>Materiales (mejor ciudad)</th>
+                                    <th class="text-end">Costo producción</th>
                                     <th class="text-end">Profit</th>
                                     <th class="text-end">Margen</th>
                                     <th></th>
@@ -573,12 +574,30 @@
                         <i class="bi bi-trash3"></i>
                     </button>
                 </div>
-                <div id="dayCraftEmpty" class="day-empty-state">
-                    <i class="bi bi-plus-circle" style="font-size:2.4rem;display:block;margin-bottom:10px;opacity:0.2;"></i>
-                    Calculá un crafteo<br>y agregalo a la sesión
+                <!-- Tabs del panel -->
+                <div class="day-tab-bar">
+                    <button class="day-tab-btn active" data-tab="session" onclick="switchDayTab('session')">
+                        <i class="bi bi-list-ul"></i> Sesión
+                    </button>
+                    <button class="day-tab-btn" data-tab="plan" onclick="switchDayTab('plan')">
+                        <i class="bi bi-signpost-split"></i> Plan de Crafteo
+                    </button>
                 </div>
-                <div id="dayCraftList" class="dc-list"></div>
-                <div id="dayCraftTotals" class="dc-totals" style="display:none;"></div>
+
+                <!-- Contenido: Sesión -->
+                <div id="daySessionContent">
+                    <div id="dayCraftEmpty" class="day-empty-state">
+                        <i class="bi bi-plus-circle" style="font-size:2.4rem;display:block;margin-bottom:10px;opacity:0.2;"></i>
+                        Calculá un crafteo<br>y agregalo a la sesión
+                    </div>
+                    <div id="dayCraftList" class="dc-list"></div>
+                    <div id="dayCraftTotals" class="dc-totals" style="display:none;"></div>
+                </div>
+
+                <!-- Contenido: Plan de Crafteo -->
+                <div id="craftingPlanContent" style="display:none;">
+                    <div class="plan-empty">Agregá crafteos a la sesión para ver el plan.</div>
+                </div>
             </div>
         </div>
 
@@ -618,6 +637,7 @@
     <script src="js/SnapshotManager.js?v=3"></script>
     <script src="js/AppController.js?v=3"></script>
     <script src="js/SessionPanel.js?v=3"></script>
+    <script src="js/CraftingPlan.js?v=1"></script>
     <script src="js/RefineryCalculator.js?v=3"></script>
     <script src="js/BatchScanner.js?v=1"></script>
     <script>

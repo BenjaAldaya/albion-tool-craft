@@ -430,7 +430,7 @@ function renderScanResults(minProfitPct = 0, minQuality = 1) {
     if (!tbody) return;
 
     if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;opacity:.5;">No hay resultados con estos filtros.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;opacity:.5;">No hay resultados con estos filtros.</td></tr>`;
         return;
     }
 
@@ -453,7 +453,7 @@ function renderScanResults(minProfitPct = 0, minQuality = 1) {
         const groupId  = `scan-group-${groupIdx}`;
 
         html += `<tr class="scan-group-header" onclick="toggleScanGroup('${groupId}')">
-            <td colspan="8">
+            <td colspan="9">
                 <div class="scan-group-header-inner">
                     <div class="scan-group-left">
                         <i class="bi bi-chevron-down scan-group-chevron" id="${groupId}-chevron"></i>
@@ -495,6 +495,7 @@ function renderScanResults(minProfitPct = 0, minQuality = 1) {
                 <td class="scan-city-cell">${r.sellCity ?? '—'}</td>
                 <td class="text-end scan-price-cell">${_fmtSilver(r.sellPrice)}${qBadge}</td>
                 <td class="scan-mat-cell">${matCols}</td>
+                <td class="text-end" style="opacity:.75;">${_fmtSilver(r.totalCost)}</td>
                 <td class="text-end" style="color:${rcolor};font-weight:700;">${rsign}${_fmtSilver(r.profit)}</td>
                 <td class="text-end" style="color:${rpctCol};font-weight:700;">${r.profitPct.toFixed(1)}%</td>
                 <td>
@@ -551,7 +552,12 @@ function addScannerResultToDay(resultIdx) {
         journalsProfit:   0,
         journalsFilled:   0,
         savedAt:          new Date().toLocaleTimeString(),
-        materials:        r.materials,
+        materials:        Object.fromEntries(
+            Object.entries(r.materials).map(([type, mat]) => [
+                type,
+                { ...mat, neededQty: mat.quantity }, // quantity = receta por craft; con quantity:1, neededQty = quantity
+            ])
+        ),
     };
 
     dayCrafts.unshift(craft);
