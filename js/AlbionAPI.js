@@ -3,8 +3,60 @@
  */
 class AlbionAPI {
     constructor() {
-        this.baseURL = AlbionConfig.API_URL;
+        const savedServer = localStorage.getItem('albionServer') || 'AMERICAS';
+        this.baseURL = AlbionConfig.API_URLS[savedServer] || AlbionConfig.API_URLS.AMERICAS;
         this.defaultCity = AlbionConfig.CITIES.CAERLEON;
+        // Requests en vuelo: evita llamadas duplicadas simultáneas
+        this._inFlight = new Map();
+        // Caché de sesión para fetchAllCityPrices (TTL: 5 minutos)
+        this._cityPriceCache = new Map();
+        this._CITY_CACHE_TTL = 5 * 60 * 1000;
+    }
+
+    /**
+     * Hace un fetch con 1 retry automático ante error de red o HTTP
+     * @param {string} url
+     * @returns {Promise<any>} - datos JSON
+     * @private
+     */
+    async _fetchWithRetry(url) {
+        const attempt = async () => {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        };
+        try {
+            return await attempt();
+        } catch (err) {
+            await new Promise(r => setTimeout(r, 1000));
+            return attempt();
+        }
+    }
+
+    /**
+     * Ejecuta un fetch deduplicado: si ya hay un request en vuelo con la misma clave,
+     * devuelve esa misma promesa en lugar de lanzar una nueva.
+     * @param {string} key - clave única del request
+     * @param {Function} fetcher - función que retorna la promesa del fetch
+     * @returns {Promise<any>}
+     * @private
+     */
+    _deduped(key, fetcher) {
+        if (this._inFlight.has(key)) return this._inFlight.get(key);
+        const promise = fetcher().finally(() => this._inFlight.delete(key));
+        this._inFlight.set(key, promise);
+        return promise;
+    }
+
+    /**
+     * Cambia el servidor de la API (Americas / Europe / Asia)
+     * @param {string} serverKey - 'AMERICAS' | 'EUROPE' | 'ASIA'
+     */
+    setServer(serverKey) {
+        const url = AlbionConfig.API_URLS[serverKey];
+        if (!url) throw new Error(`Servidor inválido: ${serverKey}`);
+        this.baseURL = url;
+        localStorage.setItem('albionServer', serverKey);
     }
 
     /**
@@ -31,17 +83,11 @@ class AlbionAPI {
      */
     async fetchPrices(itemNames, city = null, quality = 1) {
         const url = this._buildPriceURL(itemNames, city, quality);
+        const key = url;
 
         try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const data = await this._deduped(key, () => this._fetchWithRetry(url));
             return this._processPriceData(data);
-
         } catch (error) {
             console.error('Error al obtener precios de la API:', error);
             throw error;
@@ -59,19 +105,23 @@ class AlbionAPI {
 
         data.forEach(item => {
             const itemId = item.item_id;
+
+            // Black Market: los NPCs COMPRAN items → precio efectivo es buy_price_max
+            // Ciudades normales: los jugadores VENDEN items → precio efectivo es sell_price_min
+            const isBM           = item.city === 'Black Market';
+            const effectivePrice = isBM ? (item.buy_price_max || 0) : (item.sell_price_min || 0);
+
             const existing = prices[itemId];
-            // El API devuelve una entry por cada calidad (1-5).
-            // Solo sobreescribir si: no hay entry existente, o la existente
-            // tiene precio 0 y esta tiene precio real.
-            if (!existing || (existing.sellPriceMin === 0 && item.sell_price_min > 0)) {
+            if (!existing || (existing.sellPriceMin === 0 && effectivePrice > 0)) {
                 prices[itemId] = {
-                    sellPriceMin: item.sell_price_min || 0,
-                    sellPriceMax: item.sell_price_max || 0,
-                    buyPriceMin: item.buy_price_min || 0,
-                    buyPriceMax: item.buy_price_max || 0,
-                    city: item.city,
-                    quality: item.quality,
-                    lastUpdate: item.sell_price_min_date
+                    sellPriceMin: effectivePrice,          // para BM = buy_price_max del NPC
+                    sellPriceMax: isBM ? (item.buy_price_max || 0) : (item.sell_price_max || 0),
+                    buyPriceMin:  item.buy_price_min || 0,
+                    buyPriceMax:  item.buy_price_max || 0,
+                    isBlackMarket: isBM,
+                    city:         item.city,
+                    quality:      item.quality,
+                    lastUpdate:   isBM ? item.buy_price_max_date : item.sell_price_min_date
                 };
             }
         });
@@ -203,15 +253,34 @@ class AlbionAPI {
      * @returns {Promise<Array>} [{city, price}] ordenado desc por precio
      */
     async fetchAllCityPrices(itemApiName, quality = 1) {
+        const cacheKey = `${itemApiName}|${quality}`;
+        const cached = this._cityPriceCache.get(cacheKey);
+        if (cached && (Date.now() - cached.ts) < this._CITY_CACHE_TTL) {
+            return cached.data;
+        }
+
         const cities = Object.values(AlbionConfig.CITIES).join(',');
         const url = `${this.baseURL}/${itemApiName}?locations=${cities}&qualities=${quality}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        return data
-            .filter(d => d.quality === quality && d.sell_price_min > 0)
-            .map(d => ({ city: d.city, price: d.sell_price_min }))
+
+        const data = await this._deduped(url, () => this._fetchWithRetry(url));
+        const result = data
+            .filter(d => {
+                if (d.quality !== quality) return false;
+                const isBM = d.city === 'Black Market';
+                return isBM ? d.buy_price_max > 0 : d.sell_price_min > 0;
+            })
+            .map(d => {
+                const isBM = d.city === 'Black Market';
+                return {
+                    city:          d.city,
+                    price:         isBM ? d.buy_price_max : d.sell_price_min,
+                    isBlackMarket: isBM,
+                };
+            })
             .sort((a, b) => b.price - a.price);
+
+        this._cityPriceCache.set(cacheKey, { data: result, ts: Date.now() });
+        return result;
     }
 }
 

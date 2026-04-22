@@ -38,11 +38,11 @@ const AlbionConfig = {
     // Fama que otorga CADA UNIDAD de recurso según tier
     // Fuente: mecánica oficial del juego
     FAME_PER_RESOURCE: {
-        4: 15,
-        5: 45,
-        6: 135,
-        7: 405,
-        8: 1215
+        4: 22.5,
+        5: 90,
+        6: 270,
+        7: 645,
+        8: 1395
     },
 
     JOURNAL_FAME_REQUIRED: {
@@ -59,20 +59,20 @@ const AlbionConfig = {
         TOOL_RECIPES: {
 
         // === HERRAMIENTA ===
-        "2H_TOOL_AXE": { displayName: "Hacha de Tala", name: "2H_TOOL_AXE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_AXE_AVALON": { displayName: "Hacha de Tala de Avalon", name: "2H_TOOL_AXE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_FISHINGROD": { displayName: "Caña de Pesca", name: "2H_TOOL_FISHINGROD", category: "Herramienta", type: "tool", materials: { PLANKS: 6, CLOTH: 2 } },
-        "2H_TOOL_FISHINGROD_AVALON": { displayName: "Caña de Pesca de Avalon", name: "2H_TOOL_FISHINGROD_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, CLOTH: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_HAMMER": { displayName: "Pico de Minería", name: "2H_TOOL_HAMMER", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_HAMMER_AVALON": { displayName: "Pico de Minería de Avalon", name: "2H_TOOL_HAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_KNIFE": { displayName: "Cuchillo de Desuello", name: "2H_TOOL_KNIFE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_KNIFE_AVALON": { displayName: "Cuchillo de Desuello de Avalon", name: "2H_TOOL_KNIFE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_PICK": { displayName: "Pico", name: "2H_TOOL_PICK", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_PICK_AVALON": { displayName: "Pico de Avalon", name: "2H_TOOL_PICK_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_SICKLE": { displayName: "Hoz", name: "2H_TOOL_SICKLE", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
-        "2H_TOOL_SICKLE_AVALON": { displayName: "Hoz de Avalon", name: "2H_TOOL_SICKLE_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
-        "2H_TOOL_SIEGEHAMMER": { displayName: "Martillo de Asedio", name: "2H_TOOL_SIEGEHAMMER", category: "Herramienta", type: "tool", materials: { PLANKS: 8 } },
-        "2H_TOOL_SIEGEHAMMER_AVALON": { displayName: "Martillo de Asedio de Avalon", name: "2H_TOOL_SIEGEHAMMER_AVALON", category: "Herramienta", type: "tool", materials: { PLANKS: 8, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_AXE": { displayName: "Hacha de Tala", name: "2H_TOOL_AXE", category: "Hacha de Tala", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_AXE_AVALON": { displayName: "Hacha de Tala de Avalon", name: "2H_TOOL_AXE_AVALON", category: "Hacha de Tala", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_FISHINGROD": { displayName: "Caña de Pesca", name: "2H_TOOL_FISHINGROD", category: "Caña de Pesca", type: "tool", materials: { PLANKS: 6, CLOTH: 2 } },
+        "2H_TOOL_FISHINGROD_AVALON": { displayName: "Caña de Pesca de Avalon", name: "2H_TOOL_FISHINGROD_AVALON", category: "Caña de Pesca", type: "tool", materials: { PLANKS: 6, CLOTH: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_HAMMER": { displayName: "Martillo de Piedra", name: "2H_TOOL_HAMMER", category: "Martillo de Piedra", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_HAMMER_AVALON": { displayName: "Martillo de Piedra de Avalon", name: "2H_TOOL_HAMMER_AVALON", category: "Martillo de Piedra", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_KNIFE": { displayName: "Cuchillo de Desuello", name: "2H_TOOL_KNIFE", category: "Cuchillo de Desuello", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_KNIFE_AVALON": { displayName: "Cuchillo de Desuello de Avalon", name: "2H_TOOL_KNIFE_AVALON", category: "Cuchillo de Desuello", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_PICK": { displayName: "Pico", name: "2H_TOOL_PICK", category: "Pico", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_PICK_AVALON": { displayName: "Pico de Avalon", name: "2H_TOOL_PICK_AVALON", category: "Pico", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_SICKLE": { displayName: "Hoz", name: "2H_TOOL_SICKLE", category: "Hoz", type: "tool", materials: { PLANKS: 6, METALBAR: 2 } },
+        "2H_TOOL_SICKLE_AVALON": { displayName: "Hoz de Avalon", name: "2H_TOOL_SICKLE_AVALON", category: "Hoz", type: "tool", materials: { PLANKS: 6, METALBAR: 2, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
+        "2H_TOOL_SIEGEHAMMER": { displayName: "Martillo de Asedio", name: "2H_TOOL_SIEGEHAMMER", category: "Martillo de Asedio", type: "tool", materials: { PLANKS: 8 } },
+        "2H_TOOL_SIEGEHAMMER_AVALON": { displayName: "Martillo de Asedio de Avalon", name: "2H_TOOL_SIEGEHAMMER_AVALON", category: "Martillo de Asedio", type: "tool", materials: { PLANKS: 8, AVALONIANENERGY: { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 } } },
 
     },
 
@@ -472,7 +472,12 @@ const AlbionConfig = {
     // Viene directamente del archivo item_api_names_completo.js
     ITEM_API_NAMES: typeof ITEM_API_NAMES !== 'undefined' ? ITEM_API_NAMES : {},
 
-    API_URL: "https://www.albion-online-data.com/api/v2/stats/prices",
+    API_URLS: {
+        AMERICAS: "https://www.albion-online-data.com/api/v2/stats/prices",
+        EUROPE:   "https://europe.albion-online-data.com/api/v2/stats/prices",
+        ASIA:     "https://asia.albion-online-data.com/api/v2/stats/prices"
+    },
+    API_URL: "https://www.albion-online-data.com/api/v2/stats/prices", // backward compat
 
     CITIES: {
         CAERLEON: "Caerleon",
@@ -480,6 +485,7 @@ const AlbionConfig = {
         FORT_STERLING: "Fort Sterling",
         LYMHURST: "Lymhurst",
         MARTLOCK: "Martlock",
-        THETFORD: "Thetford"
+        THETFORD: "Thetford",
+        BLACK_MARKET: "Black Market"
     }
 };

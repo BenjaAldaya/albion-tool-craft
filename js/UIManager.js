@@ -460,33 +460,36 @@ class UIManager {
             const config = this.getFormValues();
             const item = this.createItem(config);
 
-            // Cargar precios de materiales + ítem en la ciudad seleccionada
-            await this.api.updateItemPrices(item, config.city);
+            // Las tres operaciones se lanzan en paralelo:
+            // - precios de item + materiales en la ciudad seleccionada
+            // - precios de materiales en todas las ciudades
+            // - precios del ítem en todas las ciudades
+            const [itemResult, , cityResult] = await Promise.allSettled([
+                this.api.updateItemPrices(item, config.city),
+                this._loadMaterialCityPrices(item).catch(e =>
+                    console.warn('No se pudo obtener precios de materiales multi-ciudad:', e)
+                ),
+                this.api.fetchAllCityPrices(item.getAPIName(), item.quality)
+            ]);
 
-            // Actualizar formulario con precios de materiales
-            this._updateFormPrices(item);
-
-            // Cargar precios de materiales en todas las ciudades
-            try {
-                await this._loadMaterialCityPrices(item);
-            } catch (e) {
-                console.warn('No se pudo obtener precios de materiales multi-ciudad:', e);
+            // Actualizar formulario con precios de la ciudad seleccionada
+            if (itemResult.status === 'fulfilled') {
+                this._updateFormPrices(item);
             }
 
-            // Obtener precios del ítem en todas las ciudades y mostrar chips
-            try {
-                const cityPrices = await this.api.fetchAllCityPrices(item.getAPIName(), item.quality);
+            // Mostrar chips de ciudad para el ítem
+            if (cityResult.status === 'fulfilled') {
+                const cityPrices = cityResult.value;
                 this._showCityPrices(cityPrices);
                 if (cityPrices.length > 0) {
                     document.getElementById('itemPrice').value = cityPrices[0].price;
                     const citySelector = document.getElementById('citySelector');
                     if (citySelector) citySelector.value = cityPrices[0].city;
-                    // Marcar el chip de la ciudad con mejor precio como seleccionado
                     const chips = document.querySelectorAll('.city-chip');
                     if (chips.length > 0) chips[0].classList.add('selected');
                 }
-            } catch (e) {
-                console.warn('No se pudo obtener precios multi-ciudad:', e);
+            } else {
+                console.warn('No se pudo obtener precios multi-ciudad:', cityResult.reason);
             }
 
             this.showToast('✅ Precios Cargados',

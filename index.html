@@ -7,591 +7,13 @@
     <title>Calculadora de Profit - Albion Online (OOP)</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        :root {
-            --primary-gold: #D4AF37;
-            --secondary-gold: #FFD700;
-            --dark-bg: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --accent-blue: #4FC3F7;
-            --success-green: #4CAF50;
-            --danger-red: #f44336;
-            --leather-brown: #8B4513;
-            --metal-gray: #708090;
-            --wood-brown: #A0522D;
-            --cloth-white: #E0E0E0;
-            --artifact-purple: #9C27B0;
-            --border-gold: rgba(212,175,55,0.35);
-        }
-
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .main-container {
-            background: #1a1a1a;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-        }
-
-        .header-title {
-            background: linear-gradient(45deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        .config-card {
-            background: #2d2d2d;
-            border-radius: 15px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Material Cards */
-        .material-card {
-            background: #2d2d2d;
-            border-radius: 12px;
-            padding: 20px;
-            border: 2px solid rgba(255,255,255,0.08);
-            border-top: 3px solid var(--material-color);
-            height: 100%;
-        }
-
-        .material-card.leather {
-            --material-color: var(--leather-brown);
-        }
-
-        .material-card.metal {
-            --material-color: var(--metal-gray);
-        }
-
-        .material-card.wood {
-            --material-color: var(--wood-brown);
-        }
-
-        .material-card.cloth {
-            --material-color: var(--cloth-white);
-        }
-
-        .material-card.artifact {
-            --material-color: var(--artifact-purple);
-        }
-
-        .material-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-        }
-
-        .material-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--secondary-gold);
-            margin-bottom: 15px;
-        }
-
-        .material-input-group {
-            position: relative;
-        }
-
-        .material-input {
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 12px 45px 12px 15px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            width: 100%;
-            transition: border-color 0.15s;
-        }
-
-        .material-input:focus {
-            outline: none;
-            border-color: var(--material-color);
-            background: rgba(0, 0, 0, 0.6);
-        }
-
-        .material-currency {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.3rem;
-        }
-
-        /* Weapon Search */
-        .weapon-search-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .weapon-search-input {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 2px solid rgba(212, 175, 55, 0.4) !important;
-            color: #fff !important;
-            font-size: 1rem;
-            padding-left: 15px;
-        }
-
-        .weapon-search-input::placeholder {
-            color: rgba(255,255,255,0.4);
-        }
-
-        .weapon-results-panel {
-            display: none;
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            right: 0;
-            background: #1e1e2e;
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            border-radius: 12px;
-            max-height: 380px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-        }
-
-        .weapon-results-panel.open {
-            display: block;
-        }
-
-        .weapon-category-header {
-            padding: 8px 15px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--primary-gold);
-            background: rgba(212, 175, 55, 0.08);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-            position: sticky;
-            top: 0;
-        }
-
-        .weapon-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background 0.15s;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .weapon-option:hover, .weapon-option.highlighted {
-            background: rgba(212, 175, 55, 0.15);
-        }
-
-        .weapon-option img {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-            border-radius: 6px;
-            background: rgba(0,0,0,0.3);
-            flex-shrink: 0;
-        }
-
-        .weapon-option-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .weapon-option-name {
-            font-weight: 600;
-            color: #fff;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .weapon-option-meta {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
-            margin-top: 2px;
-        }
-
-        .weapon-option-badge {
-            font-size: 0.65rem;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .badge-1h    { background: rgba(79, 195, 247, 0.2); color: #4FC3F7; border: 1px solid #4FC3F7; }
-        .badge-2h    { background: rgba(244, 67, 54, 0.2);  color: #f88;    border: 1px solid #f88; }
-        .badge-armor { background: rgba(129, 199, 132, 0.2); color: #81C784; border: 1px solid #81C784; }
-
-        .selected-weapon-display {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(212, 175, 55, 0.4);
-            border-radius: 12px;
-            padding: 12px 18px;
-            margin-top: 10px;
-        }
-
-        .selected-weapon-display img {
-            width: 56px;
-            height: 56px;
-            object-fit: contain;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.4);
-        }
-
-        .selected-weapon-name {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--secondary-gold);
-        }
-
-        .selected-weapon-meta {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.5);
-            margin-top: 3px;
-        }
-
-        .no-results-msg {
-            padding: 20px;
-            text-align: center;
-            color: rgba(255,255,255,0.4);
-            font-size: 0.9rem;
-        }
-
-        /* Tier & Quality Selector */
-        .tier-selector {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        .tier-btn {
-            flex: none;
-            min-width: 36px;
-            padding: 7px 6px;
-            background: #2d2d2d;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #ffffff;
-            cursor: pointer;
-            transition: border-color 0.15s;
-            font-weight: 600;
-            text-align: center;
-            font-size: 0.82rem;
-        }
-
-        .tier-btn:hover {
-            border-color: var(--accent-blue);
-        }
-
-        .tier-btn.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: #000;
-        }
-
-        .form-control,
-        .form-select {
-            background: #2d2d2d;
-            border: 2px solid rgba(212, 175, 55, 0.3);
-            color: #ffffff;
-            border-radius: 10px;
-            transition: border-color 0.15s;
-            padding: 12px 15px;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            background: #2d2d2d;
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.2);
-            color: #ffffff;
-        }
-
-        .form-label {
-            color: var(--secondary-gold);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .calculate-btn {
-            background: var(--primary-gold);
-            border: none;
-            border-radius: 12px;
-            padding: 18px 40px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #000;
-            width: 100%;
-        }
-
-        .calculate-btn:hover {
-            background: var(--secondary-gold);
-        }
-
-        .api-btn {
-            background: var(--accent-blue);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            color: white;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .api-btn:hover {
-            opacity: 0.85;
-        }
-
-        .results-card {
-            background: #2d2d2d;
-            border-radius: 15px;
-            border: 1px solid rgba(79, 195, 247, 0.3);
-        }
-
-        .section-title {
-            color: var(--accent-blue);
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(79, 195, 247, 0.3);
-        }
-
-        .stat-card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid var(--stat-color);
-        }
-
-        .stat-card.cost {
-            --stat-color: #f44336;
-        }
-
-        .stat-card.revenue {
-            --stat-color: #4CAF50;
-        }
-
-        .stat-card.journal {
-            --stat-color: #4FC3F7;
-        }
-
-        .profit-alert {
-            border-radius: 15px;
-            border: none;
-            padding: 30px;
-            text-align: center;
-            font-weight: 700;
-        }
-
-        .profit-positive {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid var(--success-green);
-        }
-
-        .profit-negative {
-            background: rgba(244, 67, 54, 0.15);
-            border: 2px solid var(--danger-red);
-        }
-
-        .text-muted { color: rgba(255,255,255,0.55) !important; }
-
-        .separator {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--primary-gold), transparent);
-            margin: 30px 0;
-            border-radius: 2px;
-        }
-
-        /* Utility classes for hiding/showing elements */
-        .d-none {
-            display: none !important;
-        }
-
-        /* Shopping List Styles */
-        .shopping-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 7px 10px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .shopping-item-qty {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary-gold);
-            min-width: 42px;
-            text-align: right;
-        }
-        /* ── Snapshot Strip ── */
-        .snap-strip {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 0 10px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(212,175,55,0.3) transparent;
-        }
-        .snap-strip::-webkit-scrollbar { height: 4px; }
-        .snap-strip::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
-        .snap-card {
-            flex-shrink: 0;
-            width: 88px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid var(--border-gold);
-            border-radius: 8px;
-            padding: 8px 6px 6px;
-            cursor: pointer;
-            text-align: center;
-            position: relative;
-            transition: border-color 0.15s, background 0.15s;
-        }
-        .snap-card:hover { border-color: var(--primary-gold); background: rgba(212,175,55,0.08); }
-        .snap-card img { width: 48px; height: 48px; object-fit: contain; border-radius: 4px; }
-        .snap-card-name { font-size: 0.62rem; font-weight: 600; color: #f0c040; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 5px; }
-        .snap-card-tier { font-size: 0.6rem; color: rgba(255,255,255,0.45); }
-        .snap-card-profit { font-size: 0.67rem; font-weight: 700; margin-top: 2px; }
-        .snap-card-del { position: absolute; top: 3px; right: 3px; background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.65rem; padding: 0; line-height: 1; }
-        .snap-card-del:hover { color: #f66; }
-
-        /* ── Material Grid ── */
-        .mat-grid { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 14px; }
-        .mat-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 78px; }
-        .mat-cell.d-none { display: none !important; }
-        .mat-cell img { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; background: rgba(0,0,0,0.3); }
-        .mat-cell input[type=number] {
-            width: 78px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #fff;
-            border-radius: 6px;
-            padding: 5px 4px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-align: center;
-        }
-        .mat-cell input[type=number]:focus { outline: none; border-color: var(--primary-gold); }
-        .mat-cell input[type=number]::-webkit-inner-spin-button,
-        .mat-cell input[type=number]::-webkit-outer-spin-button { opacity: 0.3; }
-
-        /* ── City Chips ── */
-        .city-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-        .city-chip {
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 20px;
-            color: #bbb;
-            cursor: pointer;
-            font-size: 0.7rem;
-            padding: 3px 10px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: border-color 0.15s, background 0.15s;
-        }
-        .city-chip:hover { border-color: rgba(212,175,55,0.5); color: #ddd; }
-        .city-chip.best { border-color: var(--primary-gold); color: var(--secondary-gold); font-weight: 700; }
-        .city-chip.selected { background: rgba(212,175,55,0.18); border-color: var(--secondary-gold); }
-        .city-chip .city-price { font-weight: 700; }
-
-        /* ── Premium / Tax Toggles ── */
-        .premium-tax-row {
-            display: flex;
-            gap: 28px;
-            align-items: center;
-            flex-wrap: wrap;
-            padding: 10px 14px;
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 10px;
-            margin-bottom: 12px;
-        }
-        .tax-toggle-group { display: flex; flex-direction: column; gap: 5px; }
-        .tax-toggle-title {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: rgba(255,255,255,0.65);
-            letter-spacing: 0.3px;
-        }
-        .tax-toggle-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .tax-toggle-label input[type="checkbox"] { display: none; }
-        .tax-toggle-track {
-            width: 36px;
-            height: 20px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 10px;
-            position: relative;
-            flex-shrink: 0;
-            transition: background 0.2s;
-        }
-        .tax-toggle-label input:checked + .tax-toggle-track { background: #2563eb; }
-        .tax-toggle-thumb {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border-radius: 50%;
-            transition: transform 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-        }
-        .tax-toggle-label input:checked + .tax-toggle-track .tax-toggle-thumb { transform: translateX(16px); }
-        .tax-toggle-text { font-size: 0.75rem; color: rgba(255,255,255,0.55); }
-        .tax-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.1); }
-
-        /* ── Material City Table ── */
-        .mat-city-table {
-            width: 78px;
-            border-collapse: collapse;
-            margin-top: 5px;
-            font-size: 0.6rem;
-        }
-        .mat-city-table tr {
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        .mat-city-table tr:hover td { background: rgba(212,175,55,0.15); color: #eee; }
-        .mat-city-table tr.selected td { background: rgba(212,175,55,0.2); color: var(--secondary-gold); }
-        .mat-city-table td {
-            padding: 2px 4px;
-            color: rgba(255,255,255,0.55);
-        }
-        .mat-city-table td:last-child {
-            text-align: right;
-            font-weight: 700;
-            color: rgba(255,255,255,0.8);
-        }
-        .mat-city-table tr.selected td:last-child { color: var(--secondary-gold); }
-    </style>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
-    <div class="container my-5">
+    <div class="container-fluid px-4 my-4">
 
-        <!-- ── Panel de Comparaciones (arriba) ── -->
+        <!-- ── Panel de Comparaciones (arriba, ancho completo) ── -->
         <div id="snapshotSidebar" style="display:none" class="mb-3 px-1">
             <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="text-warning fw-bold" style="font-size:.8rem"><i class="bi bi-bar-chart-fill"></i> Comparaciones</span>
@@ -600,12 +22,26 @@
             <div id="snapshotList" class="snap-strip"></div>
         </div>
 
+        <!-- ── Layout dos columnas ── -->
+        <div class="day-layout">
+        <div class="day-layout-main">
         <div class="main-container p-4">
-            <!-- <div class="text-center mb-5">
-                <h1 class="header-title display-4 mb-3">⚔️ Calculadora de Profit</h1>
-                <h2 class="text-muted">Albion Online - Crafteo Avanzado</h2>
-                <div class="separator"></div>
-            </div> -->
+
+            <!-- Tabs -->
+            <div class="tab-bar mb-4">
+                <button class="tab-btn active" data-tab="craftingTab">
+                    <i class="bi bi-hammer"></i> Crafteo
+                </button>
+                <button class="tab-btn" data-tab="refiningTab">
+                    <i class="bi bi-fire"></i> Refinado
+                </button>
+                <button class="tab-btn" data-tab="scannerTab">
+                    <i class="bi bi-search"></i> Scanner
+                </button>
+            </div>
+
+            <!-- Tab: Crafteo -->
+            <div id="craftingTab" class="tab-pane">
 
             <div class="config-card p-4 mb-4">
 
@@ -710,6 +146,11 @@
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="section-title mb-0"><i class="bi bi-bag-fill"></i> Materiales y Precios</h4>
                     <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <select id="serverSelector" class="form-select" style="width: auto; min-width: 110px;">
+                            <option value="AMERICAS">Americas</option>
+                            <option value="EUROPE">Europe</option>
+                            <option value="ASIA">Asia</option>
+                        </select>
                         <select id="citySelector" class="form-select" style="width: auto; min-width: 150px;">
                             <option value="Caerleon">Caerleon</option>
                             <option value="Bridgewatch">Bridgewatch</option>
@@ -717,6 +158,7 @@
                             <option value="Lymhurst">Lymhurst</option>
                             <option value="Martlock">Martlock</option>
                             <option value="Thetford">Thetford</option>
+                            <option value="Black Market">⚫ Black Market</option>
                         </select>
                         <button id="loadPricesBtn" class="api-btn">
                             <i class="bi bi-cloud-download-fill"></i> Cargar Precios
@@ -726,10 +168,10 @@
                 </div>
 
                 <!-- 2 columnas: materiales | precio + journals -->
-                <div style="display:flex;gap:32px;align-items:flex-start;margin-bottom:1.5rem;">
+                <div class="mat-price-columns" style="display:flex;gap:32px;align-items:flex-start;margin-bottom:1.5rem;width:100%;">
 
                     <!-- Columna izquierda: materiales -->
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Materiales</div>
                         <div class="mat-grid" id="matGrid">
                             <div class="mat-cell" data-material="LEATHER">
@@ -768,7 +210,7 @@
                     <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch;margin-top:22px;"></div>
 
                     <!-- Columna derecha: precio de venta + journals -->
-                    <div style="display:flex;flex-direction:column;gap:20px;">
+                    <div style="display:flex;flex-direction:row;gap:40px;flex-wrap:wrap;align-items:flex-start;">
 
                         <!-- Precio de venta -->
                         <div>
@@ -776,7 +218,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi bi-currency-exchange" style="font-size:1.1rem;flex-shrink:0;color:#FFD700;"></i>
                                 <input type="number" id="itemPrice" class="form-control" placeholder="0"
-                                       min="0" value="95000" style="max-width:200px;">
+                                       min="0" value="95000" style="min-width:160px;max-width:260px;">
                             </div>
                             <div id="cityPriceChips" class="city-chips"></div>
                         </div>
@@ -815,7 +257,7 @@
                 <div class="mb-4">
                     <div style="border-left: 3px solid var(--primary-gold); background: rgba(0,0,0,0.25); border-radius:10px; padding:12px 14px;">
                         <div class="text-warning mb-2" style="font-size:0.75rem;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;"><i class="bi bi-cart4"></i> Lista de Compra</div>
-                        <table style="width:50%;margin:0 auto;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;">
                             <thead>
                                 <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                                     <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:left;" colspan="2">Material</th>
@@ -843,8 +285,7 @@
                     <div class="col-md-4">
                         <div class="stat-card revenue">
                             <h5 class="text-success mb-3"><i class="bi bi-graph-up"></i> Ingresos</h5>
-                            <div class="mb-2">Venta Items: <span id="saleRevenue" class="float-end fw-bold"></span>
-                            </div>
+                            <div class="mb-2">Venta Items: <span id="saleRevenue" class="float-end fw-bold"></span></div>
                             <div class="mb-2">Sobrantes: <span id="excessValue" class="float-end fw-bold"></span></div>
                             <div class="mb-2">Total: <span id="totalRevenue" class="float-end fw-bold"></span></div>
                         </div>
@@ -854,8 +295,7 @@
                         <div class="stat-card journal">
                             <h5 class="text-info mb-3"><i class="bi bi-journal-text"></i> Journals</h5>
                             <div class="mb-2">Fama: <span id="baseFame" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Completos: <span id="journalsFilled" class="float-end fw-bold"></span>
-                            </div>
+                            <div class="mb-2">Completos: <span id="journalsFilled" class="float-end fw-bold"></span></div>
                             <div class="mb-2">Profit: <span id="journalsProfit" class="float-end fw-bold"></span></div>
                         </div>
                     </div>
@@ -868,7 +308,10 @@
                     <h1 class="mb-2" id="finalProfit"></h1>
                     <p class="mb-3 fs-5" id="profitPercentage"></p>
                     <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
-                        <button id="saveSnapshotBtn" class="btn btn-warning btn-lg">
+                        <button id="addToDayBtn" class="btn btn-warning btn-lg">
+                            <i class="bi bi-plus-circle-fill"></i> Agregar al Día
+                        </button>
+                        <button id="saveSnapshotBtn" class="btn btn-outline-warning btn-lg">
                             <i class="bi bi-bookmark-plus-fill"></i> Guardar en comparación
                         </button>
                     </div>
@@ -876,7 +319,309 @@
 
                 <div id="recommendations" class="mt-4"></div>
             </div>
+
+            </div> <!-- /craftingTab -->
+
+
+            <!-- Tab: Refinado -->
+            <div id="refiningTab" class="tab-pane" style="display:none;">
+                <div class="config-card p-4 mb-4">
+                    <h4 class="section-title mb-4"><i class="bi bi-fire"></i> Calculadora de Refinado</h4>
+
+                    <!-- Recurso -->
+                    <div class="mb-3">
+                        <div class="label-tiny mb-2">Recurso</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="res-btn active" data-res="0">
+                                <img src="https://render.albiononline.com/v1/item/T7_LEATHER.png" alt="" onerror="this.style.opacity='0.2'">
+                                Cuero
+                            </button>
+                            <button class="res-btn" data-res="1">
+                                <img src="https://render.albiononline.com/v1/item/T7_METALBAR.png" alt="" onerror="this.style.opacity='0.2'">
+                                Barras
+                            </button>
+                            <button class="res-btn" data-res="2">
+                                <img src="https://render.albiononline.com/v1/item/T7_PLANKS.png" alt="" onerror="this.style.opacity='0.2'">
+                                Tablas
+                            </button>
+                            <button class="res-btn" data-res="3">
+                                <img src="https://render.albiononline.com/v1/item/T7_CLOTH.png" alt="" onerror="this.style.opacity='0.2'">
+                                Tela
+                            </button>
+                            <button class="res-btn" data-res="4">
+                                <img src="https://render.albiononline.com/v1/item/T7_STONEBLOCK.png" alt="" onerror="this.style.opacity='0.2'">
+                                Bloques
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tier -->
+                    <div class="mb-3">
+                        <div class="label-tiny mb-2">Tier</div>
+                        <div class="d-flex gap-1">
+                            <div class="tier-btn ref-tier-btn" data-tier="4">T4</div>
+                            <div class="tier-btn ref-tier-btn" data-tier="5">T5</div>
+                            <div class="tier-btn ref-tier-btn" data-tier="6">T6</div>
+                            <div class="tier-btn ref-tier-btn active" data-tier="7">T7</div>
+                            <div class="tier-btn ref-tier-btn" data-tier="8">T8</div>
+                        </div>
+                    </div>
+
+                    <div class="separator"></div>
+
+                    <!-- Ciudad + Cargar Precios -->
+                    <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+                        <select id="refServerSelector" class="form-select" style="width:auto;min-width:110px;">
+                            <option value="AMERICAS">Americas</option>
+                            <option value="EUROPE">Europe</option>
+                            <option value="ASIA">Asia</option>
+                        </select>
+                        <button id="refLoadPricesBtn" class="api-btn">
+                            <i class="bi bi-cloud-download-fill"></i> Cargar Precios
+                        </button>
+                        <span id="refPriceStatus" class="small text-warning" style="display:none;"></span>
+                    </div>
+
+                    <!-- Parámetros -->
+                    <div class="d-flex gap-3 align-items-end flex-wrap mb-4">
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span class="label-tiny">Cantidad</span>
+                            <input type="number" id="refQty" class="form-control" value="10" min="1"
+                                   style="width:70px;padding:8px;font-size:0.85rem;">
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span class="label-tiny">Retorno %</span>
+                            <input type="number" id="refReturnRate" class="form-control" value="45" min="0" max="100"
+                                   style="width:72px;padding:8px;font-size:0.85rem;">
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;">
+                            <span class="label-tiny">Impuesto / u</span>
+                            <input type="number" id="refTax" class="form-control" value="0" min="0"
+                                   style="width:90px;padding:8px;font-size:0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Precios de materiales -->
+                    <div class="d-flex gap-4 align-items-start flex-wrap mb-4">
+                        <!-- Crudo -->
+                        <div class="ref-mat-card">
+                            <div class="label-tiny mb-2">Crudo (T<span id="refRawTierLabel">7</span>)</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <img id="refRawImg" src="" alt="" style="width:38px;height:38px;object-fit:contain;" onerror="this.style.opacity='0.2'">
+                                <input type="number" id="refRawPrice" class="form-control" placeholder="0" min="0"
+                                       style="width:130px;font-size:0.85rem;">
+                            </div>
+                            <div id="refRawCityChips" class="city-chips" style="margin-top:8px;"></div>
+                        </div>
+                        <!-- Refinado T-1 -->
+                        <div class="ref-mat-card">
+                            <div class="label-tiny mb-2">Refinado T<span id="refLowerTierLabel">6</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <img id="refLowerImg" src="" alt="" style="width:38px;height:38px;object-fit:contain;" onerror="this.style.opacity='0.2'">
+                                <input type="number" id="refLowerPrice" class="form-control" placeholder="0" min="0"
+                                       style="width:130px;font-size:0.85rem;">
+                            </div>
+                            <div id="refLowerCityChips" class="city-chips" style="margin-top:8px;"></div>
+                        </div>
+                        <!-- Resultado -->
+                        <div class="ref-mat-card ref-mat-card--result">
+                            <div class="label-tiny mb-2" style="color:var(--primary-gold);">Resultado T<span id="refResultTierLabel">7</span></div>
+                            <div class="d-flex align-items-center gap-2">
+                                <img id="refResultImg" src="" alt="" style="width:38px;height:38px;object-fit:contain;" onerror="this.style.opacity='0.2'">
+                                <span style="font-size:0.85rem;color:rgba(255,255,255,0.55);">×<span id="refQtyLabel">10</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultado -->
+                    <div class="ref-result-card">
+                        <div class="d-flex align-items-start gap-4 flex-wrap mb-3">
+                            <div>
+                                <div class="label-tiny mb-1">Costo por unidad</div>
+                                <div class="ref-cost-big">
+                                    <span id="refCostPerUnit">0</span>
+                                    <i class="bi bi-coin" style="font-size:1.3rem;"></i>
+                                </div>
+                            </div>
+                            <div class="ref-breakdown-block">
+                                <div class="ref-breakdown"><span>Crudo consumido:</span><span id="refRawUsed">0</span></div>
+                                <div class="ref-breakdown"><span>Costo crudo:</span><span id="refRawCost">0</span></div>
+                                <div class="ref-breakdown"><span>Refinado T-1:</span><span id="refLowerCost">0</span></div>
+                                <div class="ref-breakdown"><span>Impuesto total:</span><span id="refTaxCost">0</span></div>
+                                <div class="ref-breakdown ref-breakdown--total">
+                                    <span>Total (×<span id="refQtyLabel2">10</span>):</span>
+                                    <span id="refTotalCost">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="refCopyBtn" class="calculate-btn" style="padding:11px 24px;font-size:0.9rem;">
+                            <i class="bi bi-arrow-left-right"></i> Usar en Crafteo
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- /refiningTab -->
+
+            <!-- Tab: Scanner -->
+            <div id="scannerTab" class="tab-pane" style="display:none;">
+                <div class="config-card p-4 mb-4">
+                    <h4 class="section-title mb-3"><i class="bi bi-search"></i> Scanner de Crafteo Rentable</h4>
+                    <p style="color:rgba(255,255,255,.5);font-size:.82rem;margin-bottom:16px;">
+                        Selecciona categorías y el sistema analiza todas las combinaciones T4-T8 × .0-.4
+                        buscando los mejores precios de compra de materiales y venta en todas las ciudades.
+                    </p>
+
+                    <!-- Categorías -->
+                    <div class="label-tiny mb-2">Categorías</div>
+                    <div class="scan-cat-actions mb-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="selectAllCategories()">Todas</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearAllCategories()">Ninguna</button>
+                    </div>
+                    <div class="scan-cat-grid" id="scannerCatGrid">
+                        <!-- generado por JS -->
+                    </div>
+
+                    <!-- Opciones -->
+                    <div class="scan-options-row mt-4">
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Cantidad a craftear</label>
+                            <input type="number" id="scanQuantity" class="form-control scan-opt-input"
+                                   value="1" min="1" step="1">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Retorno %</label>
+                            <input type="number" id="scanReturnRate" class="form-control scan-opt-input"
+                                   value="24.8" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Impuesto crafteo</label>
+                            <input type="number" id="scanTaxRate" class="form-control scan-opt-input"
+                                   value="300" min="0" step="10">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Min. Profit %</label>
+                            <input type="number" id="scanMinProfit" class="form-control scan-opt-input"
+                                   value="0" step="1">
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Calidad mínima</label>
+                            <select id="scanItemQuality" class="form-control scan-opt-input" style="padding:6px 8px;" onchange="filterScanResults()">
+                                <option value="1" selected>Cualquiera</option>
+                                <option value="2">Good+</option>
+                                <option value="3">Outstanding+</option>
+                            </select>
+                        </div>
+                        <div class="scan-opt-group">
+                            <label class="label-tiny">Impuesto de venta</label>
+                            <div class="scan-sell-tax-opts">
+                                <label><input type="radio" name="scanSellTax" value="0.065" checked> Sell Order 6.5%</label>
+                                <label><input type="radio" name="scanSellTax" value="0.105"> Sin premium 10.5%</label>
+                                <label><input type="radio" name="scanSellTax" value="0"> Sin impuesto</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mercados a incluir -->
+                    <div class="mt-3">
+                        <label class="label-tiny mb-1">Mercados incluidos</label>
+                        <div class="scan-market-chips" id="scanMarketChips">
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Caerleon" checked><span>Caerleon</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Bridgewatch" checked><span>Bridgewatch</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Fort Sterling" checked><span>Fort Sterling</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Lymhurst" checked><span>Lymhurst</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Martlock" checked><span>Martlock</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Thetford" checked><span>Thetford</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Black Market" checked><span>Black Market</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Botón + progress -->
+                    <div class="mt-4">
+                        <button class="btn btn-primary scan-start-btn" id="scanBtn" onclick="startScan()">
+                            <i class="bi bi-lightning-charge-fill"></i> Escanear todas las ciudades
+                        </button>
+                    </div>
+                    <div id="scanProgress" style="display:none;" class="mt-3">
+                        <div class="scan-progress-track">
+                            <div class="scan-progress-fill" id="scanProgressFill" style="width:0%"></div>
+                        </div>
+                        <div class="scan-progress-text" id="scanProgressText">Iniciando...</div>
+                    </div>
+                </div>
+
+                <!-- Resultados -->
+                <div id="scanResults" style="display:none;" class="config-card p-4">
+                    <div class="scan-results-header mb-3">
+                        <span class="scan-results-count" id="scanResultsCount"></span>
+                        <label class="scan-filter-label">
+                            <input type="checkbox" id="scanOnlyProfitable" checked onchange="filterScanResults()">
+                            Solo rentables
+                        </label>
+                    </div>
+                    <div class="scan-table-wrap">
+                        <table class="scan-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Tier</th>
+                                    <th>Vende en</th>
+                                    <th class="text-end">Precio venta</th>
+                                    <th>Materiales (mejor ciudad)</th>
+                                    <th class="text-end">Costo total</th>
+                                    <th class="text-end">Costo unit.</th>
+                                    <th class="text-end">Profit</th>
+                                    <th class="text-end">Margen</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="scanTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> <!-- /scannerTab -->
+
         </div> <!-- /main-container -->
+        </div> <!-- /day-layout-main -->
+
+        <!-- ── Panel lateral: Crafteo del Día ── -->
+        <div class="day-layout-side">
+            <div class="day-panel">
+                <div class="day-panel-header">
+                    <div>
+                        <span class="day-panel-title"><i class="bi bi-calendar-check-fill"></i> Crafteo del Día</span>
+                        <span id="dayCraftBadge" class="day-panel-badge"></span>
+                    </div>
+                    <button id="dayClearBtn" class="day-clear-btn" title="Limpiar sesión" style="display:none;">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+                <!-- Tabs del panel -->
+                <div class="day-tab-bar">
+                    <button class="day-tab-btn active" data-tab="session" onclick="switchDayTab('session')">
+                        <i class="bi bi-list-ul"></i> Sesión
+                    </button>
+                    <button class="day-tab-btn" data-tab="plan" onclick="switchDayTab('plan')">
+                        <i class="bi bi-signpost-split"></i> Plan de Crafteo
+                    </button>
+                </div>
+
+                <!-- Contenido: Sesión -->
+                <div id="daySessionContent">
+                    <div id="dayCraftEmpty" class="day-empty-state">
+                        <i class="bi bi-plus-circle" style="font-size:2.4rem;display:block;margin-bottom:10px;opacity:0.2;"></i>
+                        Calculá un crafteo<br>y agregalo a la sesión
+                    </div>
+                    <div id="dayCraftList" class="dc-list"></div>
+                    <div id="dayCraftTotals" class="dc-totals" style="display:none;"></div>
+                </div>
+
+                <!-- Contenido: Plan de Crafteo -->
+                <div id="craftingPlanContent" style="display:none;">
+                    <div class="plan-empty">Agregá crafteos a la sesión para ver el plan.</div>
+                </div>
+            </div>
+        </div>
+
+        </div> <!-- /day-layout -->
     </div> <!-- /container -->
 
     <!-- Toast Container -->
@@ -895,537 +640,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <!-- Cargar módulos en orden -->
-    <script src="js/item_api_names_completo.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/Material.js"></script>
-    <script src="js/Item.js"></script>
-    <script src="js/Tool.js"></script>
-    <script src="js/Weapon.js"></script>
-    <script src="js/Armor.js"></script>
-    <script src="js/JournalManager.js"></script>
-    <script src="js/AlbionAPI.js"></script>
-    <script src="js/CraftingCalculator.js"></script>
-    <script src="js/SessionManager.js"></script>
-    <script src="js/UIManager.js"></script>
-
+    <script src="js/item_api_names_completo.js?v=3"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/Material.js?v=3"></script>
+    <script src="js/Item.js?v=3"></script>
+    <script src="js/Tool.js?v=3"></script>
+    <script src="js/Weapon.js?v=3"></script>
+    <script src="js/Armor.js?v=3"></script>
+    <script src="js/JournalManager.js?v=3"></script>
+    <script src="js/AlbionAPI.js?v=3"></script>
+    <script src="js/CraftingCalculator.js?v=3"></script>
+    <script src="js/SessionManager.js?v=3"></script>
+    <script src="js/UIManager.js?v=3"></script>
+    <script src="js/ImageHelper.js?v=3"></script>
+    <script src="js/PriceCache.js?v=3"></script>
+    <script src="js/SnapshotManager.js?v=3"></script>
+    <script src="js/AppController.js?v=3"></script>
+    <script src="js/SessionPanel.js?v=3"></script>
+    <script src="js/CraftingPlan.js?v=1"></script>
+    <script src="js/RefineryCalculator.js?v=3"></script>
+    <script src="js/BatchScanner.js?v=1"></script>
     <script>
-        // ============================================================
-        // BUSCADOR DE ARMAS CON IMÁGENES
-        // ============================================================
+        initTabs();
+        initRefineryTab();
+        initDaySession();
+        initScannerTab();
 
-        const RENDER_URL = 'https://render.albiononline.com/v1/item';
-
-        // Construye la lista de todos los items buscables (armas + herramientas)
-        function buildItemList() {
-            const items = [];
-
-            // Herramientas
-            Object.entries(AlbionConfig.TOOL_RECIPES).forEach(([key, recipe]) => {
-                items.push({
-                    type: key,
-                    name: recipe.displayName || recipe.name,
-                    category: 'Herramienta',
-                    handType: '1H',
-                    isTool: true,
-                    materials: Object.keys(recipe.materials)
-                });
+        // Sincronizar selector de servidor del tab de refinado con el principal
+        (function syncRefServerSelector() {
+            const refSel = document.getElementById('refServerSelector');
+            const mainSel = document.getElementById('serverSelector');
+            if (!refSel || !mainSel) return;
+            // Inicializar con el valor guardado
+            refSel.value = localStorage.getItem('albionServer') || 'AMERICAS';
+            refSel.addEventListener('change', function () {
+                uiManager.api.setServer(this.value);
+                mainSel.value = this.value;
+                localStorage.removeItem(PRICE_CACHE_KEY);
             });
-
-            // Armas
-            Object.entries(AlbionConfig.WEAPON_RECIPES).forEach(([key, recipe]) => {
-                items.push({
-                    type: key,
-                    name: recipe.displayName || recipe.name,
-                    category: recipe.category || 'Arma',
-                    handType: recipe.type || '1H',
-                    isTool: false,
-                    materials: Object.keys(recipe.materials)
-                });
+            mainSel.addEventListener('change', function () {
+                refSel.value = this.value;
             });
-
-            // Armaduras (pecho, casco, botas, offhands)
-            Object.entries(AlbionConfig.ARMOR_RECIPES).forEach(([key, recipe]) => {
-                items.push({
-                    type: key,
-                    name: recipe.displayName || recipe.name,
-                    category: recipe.category || 'Armadura',
-                    handType: recipe.type || 'armor',
-                    isTool: false,
-                    isArmor: true,
-                    materials: Object.keys(recipe.materials)
-                });
-            });
-
-            return items;
-        }
-
-        const ALL_ITEMS = buildItemList();
-
-        function getCurrentTier() {
-            return parseInt(document.getElementById('tier').value) || 7;
-        }
-
-        function getCurrentQuality() {
-            return parseInt(document.getElementById('quality').value) || 1;
-        }
-
-        function getCurrentEnchantment() {
-            return parseInt(document.getElementById('enchantment').value) || 0;
-        }
-
-        // Mapeo de keys de materiales de receta → ID del elemento img en el HTML
-        const MAT_IMG = { LEATHER: 'leatherImg', METALBAR: 'barsImg', PLANKS: 'planksImg', CLOTH: 'clothImg' };
-
-        // Items (armas/herramientas): render usa @N  → T7_MAIN_DAGGER@2
-        // Recursos (materiales):      render usa _LEVEL{N} → T7_LEATHER_LEVEL2
-        function getItemImageUrl(itemKey, tier, enchantment = 0, quality = 1) {
-            const ids = AlbionConfig.ITEM_API_NAMES[itemKey];
-            if (!ids) return '';
-            let id = ids[tier] || ids[4];
-            if (enchantment > 0) id += `@${enchantment}`;
-            return `${RENDER_URL}/${id}.png?quality=${quality}&size=80`;
-        }
-
-        function getMaterialImageUrl(materialKey, tier, enchantment = 0) {
-            const ids = AlbionConfig.ITEM_API_NAMES[materialKey];
-            if (!ids) return '';
-            const baseId = ids[tier] || ids[4];
-            const id = enchantment > 0 ? `${baseId}_LEVEL${enchantment}` : baseId;
-            return `${RENDER_URL}/${id}.png?quality=1&size=80`;
-        }
-
-        function getArtifactImageUrl(artifactKey, tier) {
-            if (!artifactKey) return '';
-            const ids = AlbionConfig.ITEM_API_NAMES[artifactKey];
-            if (!ids) return '';
-            return `${RENDER_URL}/${ids[tier] || ids[4]}.png?quality=1&size=80`;
-        }
-
-        function updateSelectedWeaponImage() {
-            const itemType = document.getElementById('itemType').value;
-            const tier = getCurrentTier();
-            const enchantment = getCurrentEnchantment();
-            const quality = getCurrentQuality();
-            const img = document.getElementById('selectedWeaponImg');
-            const url = getItemImageUrl(itemType, tier, enchantment, quality);
-            if (url) {
-                img.src = url;
-                img.style.opacity = '1';
-            }
-        }
-
-        function updateMaterialImages() {
-            const tier = getCurrentTier();
-            const enchantment = getCurrentEnchantment();
-            const itemType = document.getElementById('itemType').value;
-            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType] || AlbionConfig.ARMOR_RECIPES[itemType];
-
-            // Ocultar todos los cards primero
-            Object.values(MAT_IMG).forEach(id => {
-                const img = document.getElementById(id);
-                if (img) img.src = '';
-            });
-
-            // Mostrar solo los materiales que usa esta receta
-            // Herramientas no tienen encantamiento de material (siempre .0)
-            const isTool = !!AlbionConfig.TOOL_RECIPES[itemType];
-            const matEnchant = isTool ? 0 : enchantment;
-            if (recipe) {
-                Object.keys(recipe.materials).forEach(matKey => {
-                    if (matKey === 'artifact') return;
-                    const imgId = MAT_IMG[matKey];
-                    const img = imgId && document.getElementById(imgId);
-                    if (img) img.src = getMaterialImageUrl(matKey, tier, matEnchant);
-                });
-            }
-
-            // Artefacto
-            const artifactImg = document.getElementById('artifactImg');
-            if (artifactImg) {
-                artifactImg.src = recipe?.artifactKey
-                    ? getArtifactImageUrl(recipe.artifactKey, tier)
-                    : '';
-            }
-        }
-
-        function selectItem(itemData) {
-            uiManager.clearPricesAndResults();
-            document.getElementById('enchantment').value = '0';
-            document.getElementById('quality').value = '1';
-            document.getElementById('itemType').value = itemData.type;
-            document.getElementById('selectedWeaponName').textContent = itemData.name;
-            document.getElementById('selectedWeaponMeta').textContent =
-                `${itemData.category} \u2022 ${itemData.handType}`;
-            updateSelectedWeaponImage();
-            updateMaterialVisibility(itemData.type);
-            updateMaterialImages();
-            loadPriceCache();
-            closeResults();
-            uiManager.calculate();
-        }
-
-        function renderResults(filtered) {
-            const panel = document.getElementById('weaponResults');
-
-            if (filtered.length === 0) {
-                panel.innerHTML = '<div class="no-results-msg">No se encontraron items</div>';
-                panel.classList.add('open');
-                return;
-            }
-
-            // Agrupar por categoría
-            const byCategory = {};
-            filtered.forEach(item => {
-                if (!byCategory[item.category]) byCategory[item.category] = [];
-                byCategory[item.category].push(item);
-            });
-
-            const tier = getCurrentTier();
-            let html = '';
-
-            Object.entries(byCategory).forEach(([cat, items]) => {
-                html += `<div class="weapon-category-header">${cat}</div>`;
-                items.forEach(item => {
-                    const imgUrl = getItemImageUrl(item.type, tier);
-                    const SLOT_LABEL = { armor: 'PECHO', head: 'CASCO', shoes: 'BOTAS', offhand: 'OFF', tool: 'TOOL' };
-                    const badgeLabel = SLOT_LABEL[item.handType] || item.handType;
-                    const badgeClass = item.handType === '2H' ? 'badge-2h'
-                        : item.isArmor ? 'badge-armor'
-                        : 'badge-1h';
-                    html += `
-                        <div class="weapon-option" data-type="${item.type}">
-                            <img src="${imgUrl}" alt="${item.name}"
-                                 onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2242%22 height=%2242%22><rect width=%2242%22 height=%2242%22 rx=%226%22 fill=%22rgba(212,175,55,0.1)%22/><text x=%2221%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2220%22>⚔️</text></svg>';">
-                            <div class="weapon-option-info">
-                                <div class="weapon-option-name">${item.name}</div>
-                                <div class="weapon-option-meta">${item.category}</div>
-                            </div>
-                            <span class="weapon-option-badge ${badgeClass}">${badgeLabel}</span>
-                        </div>`;
-                });
-            });
-
-            panel.innerHTML = html;
-            panel.classList.add('open');
-
-            // Eventos de click en cada opción
-            panel.querySelectorAll('.weapon-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    const type = el.dataset.type;
-                    const itemData = ALL_ITEMS.find(i => i.type === type);
-                    if (itemData) selectItem(itemData);
-                });
-            });
-        }
-
-        function closeResults() {
-            document.getElementById('weaponResults').classList.remove('open');
-            document.getElementById('weaponSearch').value = '';
-        }
-
-        // Eventos del buscador
-        document.getElementById('weaponSearch').addEventListener('input', function () {
-            const query = this.value.trim().toLowerCase();
-            if (query.length === 0) {
-                // Mostrar todos cuando el campo está vacío
-                renderResults(ALL_ITEMS);
-            } else {
-                const filtered = ALL_ITEMS.filter(item =>
-                    item.name.toLowerCase().includes(query) ||
-                    item.category.toLowerCase().includes(query) ||
-                    item.type.toLowerCase().includes(query)
-                );
-                renderResults(filtered);
-            }
-        });
-
-        document.getElementById('weaponSearch').addEventListener('focus', function () {
-            renderResults(ALL_ITEMS);
-        });
-
-        // Cerrar al hacer click fuera
-        document.addEventListener('click', function (e) {
-            const wrapper = document.querySelector('.weapon-search-wrapper');
-            if (!wrapper.contains(e.target) && e.target.id !== 'selectedWeaponDisplay') {
-                document.getElementById('weaponResults').classList.remove('open');
-            }
-        });
-
-        // ============================================================
-        // INICIALIZACIÓN
-        // ============================================================
-
-        const uiManager = new UIManager();
-        uiManager.initialize();
-
-        // Manejar selección de tier
-        document.querySelectorAll('.tier-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById('tier').value = this.dataset.tier;
-                updateSelectedWeaponImage();
-                updateMaterialImages();
-                loadPriceCache();
-                uiManager.calculate();
-            });
-        });
-
-        // Actualizar imágenes cuando cambia quality o enchantment
-        document.getElementById('quality').addEventListener('change', function () {
-            updateSelectedWeaponImage();
-            updateMaterialImages();
-        });
-
-        document.getElementById('enchantment').addEventListener('change', function () {
-            updateSelectedWeaponImage();
-            updateMaterialImages();
-            loadPriceCache();
-            uiManager.calculate();
-        });
-
-        // Muestra/oculta las celdas de materiales según la receta del item
-        function updateMaterialVisibility(itemType) {
-            document.querySelectorAll('.mat-cell').forEach(el => el.classList.add('d-none'));
-
-            // Leer la receta directamente desde config (herramienta o arma)
-            const recipe = AlbionConfig.TOOL_RECIPES[itemType] || AlbionConfig.WEAPON_RECIPES[itemType] || AlbionConfig.ARMOR_RECIPES[itemType];
-            if (!recipe) return;
-
-            const mats = Object.keys(recipe.materials);
-            mats.forEach(mat => {
-                const el = document.querySelector(`.mat-cell[data-material="${mat}"]`);
-                if (el) el.classList.remove('d-none');
-            });
-        }
-
-        // ── SNAPSHOTS DE COMPARACIÓN ─────────────────────────────────────────────
-        const SNAPSHOTS_KEY = 'albionSnapshots';
-
-        function getSnapshots() {
-            return JSON.parse(localStorage.getItem(SNAPSHOTS_KEY) || '[]');
-        }
-
-        function saveSnapshot() {
-            if (!uiManager.currentCalculator) return;
-            const analysis = uiManager.currentCalculator.generateFullAnalysis();
-            const itemType = document.getElementById('itemType').value;
-            const tier     = parseInt(document.getElementById('tier').value);
-            const enchant  = parseInt(document.getElementById('enchantment').value);
-            const qty      = parseInt(document.getElementById('quantity').value) || 1;
-            const rr       = parseFloat(document.getElementById('returnRate').value) / 100 || 0;
-            const tax      = parseFloat(document.getElementById('taxRate').value) || 0;
-            const city     = document.getElementById('citySelector').value;
-
-            const prices = {
-                leather:      parseFloat(document.getElementById('leatherPrice')?.value)    || 0,
-                bars:         parseFloat(document.getElementById('barsPrice')?.value)        || 0,
-                planks:       parseFloat(document.getElementById('planksPrice')?.value)      || 0,
-                cloth:        parseFloat(document.getElementById('clothPrice')?.value)       || 0,
-                artifact:     parseFloat(document.getElementById('artifactPrice')?.value)    || 0,
-                energy:       parseFloat(document.getElementById('energyPrice')?.value)      || 0,
-                item:         parseFloat(document.getElementById('itemPrice')?.value)        || 0,
-                journalBuy:   parseFloat(document.getElementById('journalBuyPrice')?.value)  || 0,
-                journalSell:  parseFloat(document.getElementById('journalSellPrice')?.value) || 0
-            };
-
-            const snap = {
-                id: Date.now(),
-                itemType,
-                itemName:  analysis.item.name,
-                tier, enchant, qty, returnRate: rr, taxRate: tax, city, prices,
-                finalProfit: analysis.profit.finalProfit,
-                profitPct:   analysis.profit.profitPercentage,
-                savedAt: new Date().toLocaleTimeString()
-            };
-
-            const snaps = getSnapshots();
-            snaps.unshift(snap);
-            localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(snaps.slice(0, 20)));
-            renderSnapshots();
-        }
-
-        function deleteSnapshot(id) {
-            const snaps = getSnapshots().filter(s => s.id !== id);
-            localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(snaps));
-            renderSnapshots();
-        }
-
-        function loadSnapshot(snap) {
-            // Limpiar chips de ciudad al restaurar un snapshot
-            const cityChips = document.getElementById('cityPriceChips');
-            if (cityChips) cityChips.innerHTML = '';
-
-            // 1. Seleccionar ítem
-            const itemData = ALL_ITEMS.find(i => i.type === snap.itemType);
-            if (!itemData) return;
-            document.getElementById('itemType').value = snap.itemType;
-            document.getElementById('selectedWeaponName').textContent = itemData.name;
-            document.getElementById('selectedWeaponMeta').textContent =
-                `${itemData.category} \u2022 ${itemData.handType}`;
-
-            // 2. Setear tier
-            document.querySelectorAll('.tier-btn').forEach(b => {
-                b.classList.toggle('active', b.dataset.tier == snap.tier);
-            });
-            document.getElementById('tier').value = snap.tier;
-
-            // 3. Setear enchant, qty, returnRate, taxRate, city
-            document.getElementById('enchantment').value = snap.enchant;
-            document.getElementById('quantity').value    = snap.qty;
-            document.getElementById('returnRate').value  = Math.round(snap.returnRate * 100);
-            document.getElementById('taxRate').value     = snap.taxRate;
-            document.getElementById('citySelector').value = snap.city;
-
-            // 4. Setear precios (incluye journals)
-            const map = {
-                leather:'leatherPrice', bars:'barsPrice', planks:'planksPrice',
-                cloth:'clothPrice', artifact:'artifactPrice', energy:'energyPrice', item:'itemPrice',
-                journalBuy:'journalBuyPrice', journalSell:'journalSellPrice'
-            };
-            Object.entries(map).forEach(([field, id]) => {
-                const el = document.getElementById(id);
-                if (el && snap.prices[field] != null) el.value = snap.prices[field];
-            });
-
-            // 5. Actualizar UI y recalcular
-            updateSelectedWeaponImage();
-            updateMaterialVisibility(snap.itemType);
-            updateMaterialImages();
-            uiManager.calculate();
-        }
-
-        function renderSnapshots() {
-            const snaps   = getSnapshots();
-            const sidebar = document.getElementById('snapshotSidebar');
-            const list    = document.getElementById('snapshotList');
-            const count   = document.getElementById('snapshotCount');
-
-            sidebar.style.display = snaps.length === 0 ? 'none' : '';
-            if (snaps.length === 0) return;
-            if (count) count.textContent = `(${snaps.length})`;
-
-            list.innerHTML = snaps.map(s => {
-                const profitColor = s.finalProfit >= 0 ? '#a0d080' : '#f08080';
-                const sign        = s.finalProfit >= 0 ? '+' : '';
-                const profitK     = Math.abs(s.finalProfit) >= 1000
-                    ? sign + (s.finalProfit / 1000).toFixed(1) + 'K'
-                    : sign + Math.round(s.finalProfit).toLocaleString();
-                const enchTxt = s.enchant > 0 ? `.${s.enchant}` : '';
-                const imgUrl  = getItemImageUrl(s.itemType, s.tier, s.enchant);
-                return `
-                <div class="snap-card" data-id="${s.id}">
-                    <button class="snap-card-del" data-id="${s.id}" title="Eliminar">✕</button>
-                    <img src="${imgUrl}" alt="${s.itemName}"
-                         onerror="this.onerror=null;this.style.opacity='0.2'">
-                    <div class="snap-card-name">${s.itemName}</div>
-                    <div class="snap-card-tier">T${s.tier}${enchTxt} · ${s.city.substring(0,3)}</div>
-                    <div class="snap-card-profit" style="color:${profitColor}">${profitK} <i class="bi bi-coin" style="font-size:0.85em;"></i></div>
-                </div>`;
-            }).join('');
-
-            // Clic en card para cargar
-            list.querySelectorAll('.snap-card').forEach(el => {
-                el.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('snap-card-del')) return;
-                    const id   = parseInt(this.dataset.id);
-                    const snap = getSnapshots().find(s => s.id === id);
-                    if (snap) loadSnapshot(snap);
-                });
-            });
-            // Clic en borrar
-            list.querySelectorAll('.snap-card-del').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    deleteSnapshot(parseInt(this.dataset.id));
-                });
-            });
-        }
-
-        // Evento del botón guardar snapshot
-        document.getElementById('saveSnapshotBtn').addEventListener('click', saveSnapshot);
-
-        // Inicializar el panel al cargar
-        renderSnapshots();
-
-        // ── CACHE DE PRECIOS ─────────────────────────────────────────────────────
-        const PRICE_CACHE_KEY = 'albionPriceCache';
-
-        function getPriceCacheKey() {
-            const tier    = document.getElementById('tier').value;
-            const enchant = document.getElementById('enchantment').value;
-            const city    = document.getElementById('citySelector').value;
-            return `T${tier}_${enchant}_${city}`;
-        }
-
-        function savePriceCache() {
-            const inputs = {
-                leather:  parseFloat(document.getElementById('leatherPrice')?.value)  || 0,
-                bars:     parseFloat(document.getElementById('barsPrice')?.value)      || 0,
-                planks:   parseFloat(document.getElementById('planksPrice')?.value)    || 0,
-                cloth:    parseFloat(document.getElementById('clothPrice')?.value)     || 0,
-                artifact: parseFloat(document.getElementById('artifactPrice')?.value)  || 0,
-                energy:   parseFloat(document.getElementById('energyPrice')?.value)    || 0
-            };
-            const hasAny = Object.values(inputs).some(v => v > 0);
-            if (!hasAny) return;
-
-            const cache = JSON.parse(localStorage.getItem(PRICE_CACHE_KEY) || '{}');
-            cache[getPriceCacheKey()] = { ...inputs, updatedAt: new Date().toLocaleTimeString() };
-            localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(cache));
-        }
-
-        function loadPriceCache() {
-            const cache  = JSON.parse(localStorage.getItem(PRICE_CACHE_KEY) || '{}');
-            const cached = cache[getPriceCacheKey()];
-            const badge  = document.getElementById('priceCacheBadge');
-            if (!cached) { if (badge) badge.style.display = 'none'; return; }
-
-            const map = {
-                leather: 'leatherPrice', bars: 'barsPrice',
-                planks: 'planksPrice',   cloth: 'clothPrice', artifact: 'artifactPrice', energy: 'energyPrice'
-            };
-            let loaded = false;
-            Object.entries(map).forEach(([field, id]) => {
-                const el = document.getElementById(id);
-                if (el && cached[field] > 0) { el.value = cached[field]; loaded = true; }
-            });
-            if (badge) {
-                badge.innerHTML = loaded ? `<i class="bi bi-lightning-fill"></i> Cache (${cached.updatedAt})` : '';
-                badge.style.display = loaded ? '' : 'none';
-            }
-        }
-
-        // Guardar cache al cambiar ciudad
-        document.getElementById('citySelector').addEventListener('change', function () {
-            loadPriceCache();
-            uiManager.calculate();
-        });
-
-        // Premium / Tax toggles
-        document.getElementById('premiumToggle').addEventListener('change', function () {
-            document.getElementById('sellTaxPct').textContent = this.checked ? '6.5' : '10.5';
-            uiManager.calculate();
-        });
-        document.getElementById('sellOrderTaxToggle').addEventListener('change', function () {
-            uiManager.calculate();
-        });
-        document.getElementById('buyOrderTaxToggle').addEventListener('change', function () {
-            uiManager.calculate();
-        });
-
-        // Inicializar con Dagger seleccionado
-        (function init() {
-            const defaultItem = ALL_ITEMS.find(i => i.type === 'MAIN_DAGGER');
-            if (defaultItem) {
-                document.getElementById('selectedWeaponName').textContent = defaultItem.name;
-                document.getElementById('selectedWeaponMeta').textContent =
-                    `${defaultItem.category} \u2022 ${defaultItem.handType}`;
-            }
-            updateSelectedWeaponImage();
-            updateMaterialVisibility('MAIN_DAGGER');
-            updateMaterialImages();
-            loadPriceCache();
         })();
     </script>
 </body>
