@@ -483,6 +483,11 @@
                     <!-- Opciones -->
                     <div class="scan-options-row mt-4">
                         <div class="scan-opt-group">
+                            <label class="label-tiny">Cantidad a craftear</label>
+                            <input type="number" id="scanQuantity" class="form-control scan-opt-input"
+                                   value="1" min="1" step="1">
+                        </div>
+                        <div class="scan-opt-group">
                             <label class="label-tiny">Retorno %</label>
                             <input type="number" id="scanReturnRate" class="form-control scan-opt-input"
                                    value="24.8" min="0" max="100" step="0.1">
@@ -512,6 +517,20 @@
                                 <label><input type="radio" name="scanSellTax" value="0.105"> Sin premium 10.5%</label>
                                 <label><input type="radio" name="scanSellTax" value="0"> Sin impuesto</label>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Mercados a incluir -->
+                    <div class="mt-3">
+                        <label class="label-tiny mb-1">Mercados incluidos</label>
+                        <div class="scan-market-chips" id="scanMarketChips">
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Caerleon" checked><span>Caerleon</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Bridgewatch" checked><span>Bridgewatch</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Fort Sterling" checked><span>Fort Sterling</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Lymhurst" checked><span>Lymhurst</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Martlock" checked><span>Martlock</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Thetford" checked><span>Thetford</span></label>
+                            <label class="scan-cat-chip"><input type="checkbox" class="scan-market-cb" value="Black Market" checked><span>Black Market</span></label>
                         </div>
                     </div>
 
@@ -547,7 +566,8 @@
                                     <th>Vende en</th>
                                     <th class="text-end">Precio venta</th>
                                     <th>Materiales (mejor ciudad)</th>
-                                    <th class="text-end">Costo producción</th>
+                                    <th class="text-end">Costo total</th>
+                                    <th class="text-end">Costo unit.</th>
                                     <th class="text-end">Profit</th>
                                     <th class="text-end">Margen</th>
                                     <th></th>

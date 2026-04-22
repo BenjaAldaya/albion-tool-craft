@@ -1318,6 +1318,12 @@ body {
     margin-bottom: 4px;
 }
 
+.scan-market-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .scan-cat-group-label {
     flex-basis: 100%;
     font-size: 0.6rem;
