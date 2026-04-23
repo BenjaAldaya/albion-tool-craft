@@ -1779,6 +1779,72 @@ body {
     min-height: 1600px;
 }
 
+/* ── Modo pizarra full-screen ──────────────────────────────────────────────── */
+/* Se activa añadiendo .canvas-mode al body cuando el tab Crafteo está activo  */
+
+body.canvas-mode {
+    overflow: hidden;
+}
+body.canvas-mode > .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none;
+}
+body.canvas-mode #snapshotSidebar {
+    display: none !important;
+}
+body.canvas-mode .day-layout {
+    display: block;    /* rompe la grid de 2 columnas */
+    height: 100vh;
+    overflow: hidden;
+}
+body.canvas-mode .day-layout-side {
+    display: none;     /* panel lateral oculto en canvas mode */
+}
+body.canvas-mode .day-layout-main {
+    height: 100vh;
+    overflow: hidden;
+}
+body.canvas-mode .main-container {
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #0f0f23 !important;
+    height: 100vh;
+    overflow: hidden;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+body.canvas-mode .tab-bar {
+    padding: 8px 20px !important;
+    margin-bottom: 0 !important;
+    background: rgba(15,15,35,.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(212,175,55,.18) !important;
+    flex-shrink: 0;
+}
+body.canvas-mode #craftingTab {
+    /* display lo maneja initTabs() vía style.display; solo configuramos el layout */
+    flex: 1;
+    overflow: hidden;
+    flex-direction: column;
+    /* Cuando initTabs() pone style.display='', este display aplica: */
+    display: flex;
+}
+body.canvas-mode .craft-canvas-wrap {
+    flex: 1;
+    height: auto !important;
+    border-radius: 0 !important;
+    border: none !important;
+}
+body.canvas-mode .cp-add-fab {
+    right: 28px !important;
+    bottom: 28px !important;
+}
+
 /* ── FAB "Nuevo panel" ── */
 .cp-add-fab {
     position: fixed;
@@ -1812,7 +1878,7 @@ body {
 /* ── Panel ── */
 .craft-panel {
     position: absolute;
-    width: 400px;
+    width: 480px;
     background: #1e1e2e;
     border: 1px solid rgba(212,175,55,.22);
     border-radius: 14px;
@@ -2034,13 +2100,13 @@ body {
 .cp-field input[type=number]::-webkit-inner-spin-button,
 .cp-field input[type=number]::-webkit-outer-spin-button { opacity: .3; }
 
-/* ── Prices area ── */
+/* ── Prices area — apilado vertical ── */
 .cp-prices-area {
     display: flex;
-    gap: 9px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
 }
-.cp-mats-col { flex: 1; min-width: 0; }
+.cp-mats-col { width: 100%; }
 .cp-section-label {
     font-size: .58rem;
     color: rgba(255,255,255,.35);
@@ -2106,16 +2172,27 @@ body {
 .cp-mat-city:hover    { background: rgba(212,175,55,.1);  color: #ddd; }
 .cp-mat-city.selected { background: rgba(212,175,55,.18); color: var(--secondary-gold); }
 
-/* Column separator */
+/* Separador horizontal entre materiales y precio */
 .cp-col-sep {
-    width: 1px;
+    height: 1px;
+    width: 100%;
     background: rgba(255,255,255,.07);
-    align-self: stretch;
+    margin: 10px 0;
     flex-shrink: 0;
 }
 
-/* Sell column */
-.cp-sell-col { flex: 0 0 auto; min-width: 128px; }
+/* Fila de precio de venta + journals (dos sub-columnas) */
+.cp-sell-col {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+}
+.cp-sell-left { flex: 1; min-width: 0; }
+.cp-sell-sep  { width: 1px; background: rgba(255,255,255,.07); align-self: stretch; flex-shrink: 0; }
+.cp-sell-right { flex: 0 0 auto; }
+
 .cp-sell-row {
     display: flex;
     align-items: center;
@@ -2148,30 +2225,26 @@ body {
     flex-shrink: 0;
 }
 
-/* City chips stack */
+/* City chips — wrap horizontal */
 .cp-city-chips {
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-    max-height: 148px;
-    overflow-y: auto;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
 }
 .cp-city-chip {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: .64rem;
+    font-size: .63rem;
     background: rgba(0,0,0,.28);
     border: 1px solid rgba(255,255,255,.1);
-    border-radius: 6px;
-    padding: 3px 7px;
+    border-radius: 20px;
+    padding: 3px 8px;
     cursor: pointer;
     color: rgba(255,255,255,.58);
     transition: border-color .12s, background .12s;
-    text-align: left;
     white-space: nowrap;
-    width: 100%;
 }
 .cp-city-chip:hover { border-color: rgba(212,175,55,.42); color: #ddd; background: rgba(255,255,255,.04); }
 .cp-city-chip.best  { border-color: var(--primary-gold); color: var(--secondary-gold); background: rgba(212,175,55,.07); font-weight: 700; }

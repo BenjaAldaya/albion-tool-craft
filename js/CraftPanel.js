@@ -96,33 +96,41 @@ class CraftPanel {
                 </div>
             </div>
 
-            <!-- Materiales + Precio de venta -->
+            <!-- Materiales + Precio de venta (apilados verticalmente) -->
             <div class="cp-prices-area" style="display:none;">
 
-                <!-- Materiales -->
+                <!-- Fila 1: Materiales -->
                 <div class="cp-mats-col">
                     <div class="cp-section-label">Materiales</div>
                     <div class="cp-mat-grid"></div>
                 </div>
 
-                <!-- Separador -->
+                <!-- Separador horizontal -->
                 <div class="cp-col-sep"></div>
 
-                <!-- Precio de venta + Journals -->
+                <!-- Fila 2: Precio de venta (izq) + Journals (der) -->
                 <div class="cp-sell-col">
-                    <div class="cp-section-label">Precio venta</div>
-                    <div class="cp-sell-row">
-                        <i class="bi bi-currency-exchange" style="color:#FFD700;font-size:.95rem;"></i>
-                        <input type="number" class="cp-sell-price" value="0" min="0" placeholder="0">
-                        <span class="cp-q-badge" style="display:none;"></span>
-                    </div>
-                    <div class="cp-city-chips"></div>
 
-                    <div class="cp-section-label" style="margin-top:10px;"><i class="bi bi-journal-text"></i> Journals</div>
-                    <div class="cp-journals">
-                        <div class="cp-field"><label>Vacío</label> <input type="number" class="cp-journal-buy"  value="0" min="0"></div>
-                        <div class="cp-field"><label>Lleno</label> <input type="number" class="cp-journal-sell" value="0" min="0"></div>
+                    <div class="cp-sell-left">
+                        <div class="cp-section-label">Precio venta</div>
+                        <div class="cp-sell-row">
+                            <i class="bi bi-currency-exchange" style="color:#FFD700;font-size:.95rem;"></i>
+                            <input type="number" class="cp-sell-price" value="0" min="0" placeholder="0">
+                            <span class="cp-q-badge" style="display:none;"></span>
+                        </div>
+                        <div class="cp-city-chips"></div>
                     </div>
+
+                    <div class="cp-sell-sep"></div>
+
+                    <div class="cp-sell-right">
+                        <div class="cp-section-label"><i class="bi bi-journal-text"></i> Journals</div>
+                        <div class="cp-journals">
+                            <div class="cp-field"><label>Vacío</label> <input type="number" class="cp-journal-buy"  value="0" min="0"></div>
+                            <div class="cp-field"><label>Lleno</label> <input type="number" class="cp-journal-sell" value="0" min="0"></div>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>

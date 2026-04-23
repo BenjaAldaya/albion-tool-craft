@@ -104,3 +104,19 @@ document.getElementById('addPanelFab')?.addEventListener('click', () => addCraft
 
 // Panel inicial al cargar la página
 addCraftPanel();
+
+// ── Modo full-screen cuando el tab Crafteo está activo ───────────────────────
+
+function setCanvasMode(isCanvas) {
+    document.body.classList.toggle('canvas-mode', isCanvas);
+}
+
+// Engancharse a los clics de tabs (initTabs() ya corre antes de este script)
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        setCanvasMode(btn.dataset.tab === 'craftingTab');
+    });
+});
+
+// El tab Crafteo está activo por defecto al cargar
+setCanvasMode(true);
