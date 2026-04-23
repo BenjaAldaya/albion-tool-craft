@@ -1879,6 +1879,7 @@ body.canvas-mode .cp-add-fab {
 .craft-panel {
     position: absolute;
     width: 480px;
+    min-height: 120px;   /* asegura un tamaño visible mínimo en estado vacío */
     background: #1e1e2e;
     border: 1px solid rgba(212,175,55,.22);
     border-radius: 14px;
@@ -1933,20 +1934,16 @@ body.canvas-mode .cp-add-fab {
 .cp-close:hover    { color: #e87676; background: rgba(232,118,118,.14); }
 
 /* ── Body ── */
+/* Sin overflow ni max-height: el panel crece con su contenido.
+   Como está en position:absolute dentro del canvas, no rompe ningún layout
+   y el dropdown de búsqueda no dispara scrollbars espurios. */
 .cp-body {
     padding: 11px;
     display: flex;
     flex-direction: column;
     gap: 9px;
-    max-height: calc(100vh - 130px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(212,175,55,.18) transparent;
     border-radius: 0 0 14px 14px;
 }
-.cp-body::-webkit-scrollbar { width: 3px; }
-.cp-body::-webkit-scrollbar-thumb { background: rgba(212,175,55,.2); border-radius: 2px; }
 
 /* ── Search ── */
 .cp-search-row  { display: flex; flex-direction: column; gap: 7px; }
