@@ -164,7 +164,10 @@ function renderDayPanel() {
 
     if (empty) empty.style.display = 'none';
 
-    list.innerHTML = dayCrafts.map(c => _buildCraftCard(c)).join('');
+    list.innerHTML = dayCrafts.map(c => {
+        try { return _buildCraftCard(c); }
+        catch (err) { console.warn('[DayPanel] Error renderizando crafteo', c.id, err); return ''; }
+    }).join('');
 
     list.querySelectorAll('.dc-del-btn').forEach(btn => {
         btn.addEventListener('click', e => {
@@ -200,16 +203,17 @@ function _buildCraftCard(c) {
     const Q_NAMES     = ['', 'Normal', 'Good', 'Outstanding', 'Excellent', 'Masterpiece'];
     const RENDER      = 'https://render.albiononline.com/v1/item/';
 
-    const matRows = Object.entries(c.materials).map(([, mat]) => {
-        const renderName = mat.apiName.replace(/@(\d)$/, '_LEVEL$1');
-        const subtotal   = mat.quantity * mat.price;
+    const matRows = Object.entries(c.materials || {}).map(([type, mat]) => {
+        if (!mat || typeof mat !== 'object') return '';
+        const renderName = (mat.apiName || '').replace(/@(\d)$/, '_LEVEL$1');
+        const subtotal   = (mat.quantity || 0) * (mat.price || 0);
         return `
         <tr>
             <td><img src="${RENDER}${renderName}.png?size=40" width="20" height="20"
                      style="border-radius:3px;object-fit:contain;" onerror="this.style.display='none'"></td>
-            <td class="dc-mat-name">${mat.label}</td>
-            <td class="dc-mat-qty">${mat.quantity.toLocaleString()}</td>
-            <td class="dc-mat-price">${mat.price > 0 ? _fmtSilver(mat.price) : '—'}</td>
+            <td class="dc-mat-name">${mat.label || type}</td>
+            <td class="dc-mat-qty">${(mat.quantity || 0).toLocaleString()}</td>
+            <td class="dc-mat-price">${(mat.price || 0) > 0 ? _fmtSilver(mat.price) : '—'}</td>
             <td class="dc-mat-total">${subtotal > 0 ? _fmtSilver(subtotal) : '—'}</td>
         </tr>`;
     }).join('') || `<tr><td colspan="5" style="opacity:.35;font-size:.72rem;padding:6px 4px;">Sin materiales</td></tr>`;
@@ -268,7 +272,7 @@ function _buildCraftCard(c) {
                 <span>Profit</span>
                 <span>${sign}${Math.round(c.finalProfit).toLocaleString()} <i class="bi bi-coin" style="font-size:.85em;"></i></span>
             </div>
-            <div class="dc-profit-pct" style="color:${profitColor}">${c.profitPct.toFixed(1)}% margen</div>
+            <div class="dc-profit-pct" style="color:${profitColor}">${(c.profitPct ?? 0).toFixed(1)}% margen</div>
         </div>
     </div>`;
 }
@@ -300,17 +304,18 @@ function _renderTotals() {
 
     const aggMats = {};
     dayCrafts.forEach(c => {
-        Object.entries(c.materials).forEach(([, mat]) => {
-            const key = mat.apiName || mat.label;          // único por tier+enchant
+        Object.entries(c.materials || {}).forEach(([type, mat]) => {
+            if (!mat || typeof mat !== 'object') return;
+            const key = mat.apiName || mat.label || type;
             if (!aggMats[key]) aggMats[key] = {
-                label:     mat.label,
-                apiName:   mat.apiName,
+                label:     mat.label || type,
+                apiName:   mat.apiName || '',
                 tierLabel: _tierLabel(mat.apiName),
                 totalQty:  0,
                 totalCost: 0,
             };
-            aggMats[key].totalQty  += mat.quantity;
-            aggMats[key].totalCost += mat.quantity * mat.price;
+            aggMats[key].totalQty  += (mat.quantity || 0);
+            aggMats[key].totalCost += (mat.quantity || 0) * (mat.price || 0);
         });
     });
 

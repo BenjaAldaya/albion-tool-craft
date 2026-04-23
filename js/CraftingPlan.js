@@ -71,13 +71,16 @@
             const stepMaterials = [];
             const returnRate    = craft.returnRate;
 
-            for (const [type, mat] of Object.entries(craft.materials)) {
+            for (const [type, mat] of Object.entries(craft.materials || {})) {
+                if (!mat || typeof mat !== 'object') continue;
                 const apiName    = mat.apiName || type;
                 const available  = stock[apiName] || 0;
                 const recipeInfo = _getRecipeInfo(craft.itemType, type, craft.tier);
 
+                // Prioridad: config receta → neededQty/cantidad → quantity/cantidad (fallback)
                 const basePerItem = recipeInfo?.qty
-                    ?? (mat.neededQty ? mat.neededQty / craft.quantity : 0);
+                    ?? (mat.neededQty   ? mat.neededQty   / craft.quantity : null)
+                    ?? (mat.quantity    ? mat.quantity     / craft.quantity : 0);
 
                 if (!basePerItem) continue;
 
@@ -134,9 +137,12 @@
         let consolidatedCost = 0;
         for (const craft of dayCrafts) {
             const returnRate = craft.returnRate;
-            for (const [type, mat] of Object.entries(craft.materials)) {
+            for (const [type, mat] of Object.entries(craft.materials || {})) {
+                if (!mat || typeof mat !== 'object') continue;
                 const recipeInfo  = _getRecipeInfo(craft.itemType, type, craft.tier);
-                const basePerItem = recipeInfo?.qty ?? (mat.neededQty ? mat.neededQty / craft.quantity : 0);
+                const basePerItem = recipeInfo?.qty
+                    ?? (mat.neededQty ? mat.neededQty / craft.quantity : null)
+                    ?? (mat.quantity  ? mat.quantity  / craft.quantity : 0);
                 if (!basePerItem) continue;
                 const sim = _simulateCraft(basePerItem, craft.quantity, returnRate, 0, recipeInfo?.noReturn ?? false);
                 consolidatedCost += sim.toBuyFresh * (mat.price || 0);
