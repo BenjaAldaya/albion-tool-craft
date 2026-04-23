@@ -40,295 +40,15 @@
                 </button>
             </div>
 
-            <!-- Tab: Crafteo -->
+            <!-- Tab: Crafteo — Canvas multi-panel -->
             <div id="craftingTab" class="tab-pane">
-
-            <div class="config-card p-4 mb-4">
-
-                <!-- Fila 1: Búsqueda + Tiers + Enchant -->
-                <div class="d-flex gap-2 align-items-start mb-2 flex-wrap">
-                    <div class="weapon-search-wrapper" style="flex: 1; min-width: 180px; margin-bottom: 0;">
-                        <input type="text" id="weaponSearch" class="form-control weapon-search-input"
-                            placeholder="🔍 Buscar arma o herramienta...">
-                        <div id="weaponResults" class="weapon-results-panel"></div>
-                    </div>
-                    <div class="d-flex gap-1">
-                        <div class="tier-btn" data-tier="4">T4</div>
-                        <div class="tier-btn" data-tier="5">T5</div>
-                        <div class="tier-btn" data-tier="6">T6</div>
-                        <div class="tier-btn active" data-tier="7">T7</div>
-                        <div class="tier-btn" data-tier="8">T8</div>
-                    </div>
-                    <input type="hidden" id="tier" value="7">
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Encant.</span>
-                        <select id="enchantment" class="form-select" style="width: auto; padding: 7px 10px; font-size: 0.85rem;">
-                            <option value="0">.0</option>
-                            <option value="1" selected>.1</option>
-                            <option value="2">.2</option>
-                            <option value="3">.3</option>
-                            <option value="4">.4</option>
-                        </select>
-                    </div>
+                <div class="craft-canvas-wrap" id="craftCanvasWrap">
+                    <div class="craft-canvas-inner" id="craftCanvas"></div>
                 </div>
-
-                <!-- Fila 2: Item seleccionado + Controles -->
-                <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
-                    <div class="selected-weapon-display" id="selectedWeaponDisplay"
-                         style="flex: 1; min-width: 180px; margin-top: 0; padding: 8px 14px;">
-                        <img id="selectedWeaponImg" src="" alt="Item" onerror="this.style.opacity='0.2'">
-                        <div>
-                            <div class="selected-weapon-name" id="selectedWeaponName">Dagger</div>
-                            <div class="selected-weapon-meta" id="selectedWeaponMeta">Daga &bull; 1H</div>
-                        </div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Calidad</span>
-                        <!-- select oculto para compatibilidad con getFormValues() -->
-                        <select id="quality" style="display:none;">
-                            <option value="1">Normal</option>
-                            <option value="2" selected>Good</option>
-                            <option value="3">Outstanding</option>
-                            <option value="4">Excellent</option>
-                            <option value="5">Masterpiece</option>
-                        </select>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Cant.</span>
-                        <input type="number" id="quantity" class="form-control" value="10" min="1"
-                               style="width: 64px; padding: 8px 8px; font-size: 0.85rem;">
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Retorno %</span>
-                        <input type="number" id="returnRate" class="form-control" value="45" min="0" max="100"
-                               style="width: 64px; padding: 8px 8px; font-size: 0.85rem;">
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Impuesto</span>
-                        <input type="number" id="taxRate" class="form-control" value="450" min="0"
-                               style="width: 72px; padding: 8px 8px; font-size: 0.85rem;">
-                    </div>
-                </div>
-
-                <input type="hidden" id="itemType" value="MAIN_DAGGER">
-
-                <!-- Premium & Market Tax -->
-                <div class="premium-tax-row">
-                    <div class="tax-toggle-group">
-                        <span class="tax-toggle-title">Premium</span>
-                        <label class="tax-toggle-label">
-                            <input type="checkbox" id="premiumToggle" checked>
-                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
-                            <span class="tax-toggle-text">Enabled</span>
-                        </label>
-                    </div>
-                    <div class="tax-divider"></div>
-                    <div class="tax-toggle-group">
-                        <span class="tax-toggle-title">Sell Order (<span id="sellTaxPct">6.5</span>%)</span>
-                        <label class="tax-toggle-label">
-                            <input type="checkbox" id="sellOrderTaxToggle" checked>
-                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
-                            <span class="tax-toggle-text">Include taxes</span>
-                        </label>
-                    </div>
-                    <div class="tax-divider"></div>
-                    <div class="tax-toggle-group">
-                        <span class="tax-toggle-title">Buy Order (+2.5%)</span>
-                        <label class="tax-toggle-label">
-                            <input type="checkbox" id="buyOrderTaxToggle">
-                            <span class="tax-toggle-track"><span class="tax-toggle-thumb"></span></span>
-                            <span class="tax-toggle-text">Include taxes</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="separator"></div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h4 class="section-title mb-0"><i class="bi bi-bag-fill"></i> Materiales y Precios</h4>
-                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <select id="serverSelector" class="form-select" style="width: auto; min-width: 110px;">
-                            <option value="AMERICAS">Americas</option>
-                            <option value="EUROPE">Europe</option>
-                            <option value="ASIA">Asia</option>
-                        </select>
-                        <!-- citySelector oculto: se auto-llena con el mejor precio detectado -->
-                        <select id="citySelector" style="display:none;">
-                            <option value="Caerleon">Caerleon</option>
-                            <option value="Bridgewatch">Bridgewatch</option>
-                            <option value="Fort Sterling">Fort Sterling</option>
-                            <option value="Lymhurst">Lymhurst</option>
-                            <option value="Martlock">Martlock</option>
-                            <option value="Thetford">Thetford</option>
-                            <option value="Black Market">Black Market</option>
-                        </select>
-                        <button id="loadPricesBtn" class="api-btn">
-                            <i class="bi bi-cloud-download-fill"></i> Cargar Precios
-                        </button>
-                        <span id="priceCacheBadge" class="small text-warning" style="display:none"></span>
-                    </div>
-                </div>
-
-                <!-- 2 columnas: materiales | precio + journals -->
-                <div class="mat-price-columns" style="display:flex;gap:24px;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;">
-
-                    <!-- Columna izquierda: materiales -->
-                    <div style="flex:0 0 auto;">
-                        <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Materiales</div>
-                        <div class="mat-grid" id="matGrid">
-                            <div class="mat-cell" data-material="LEATHER">
-                                <img id="leatherImg" src="" alt="🦌"
-                                     onerror="this.onerror=null;this.style.opacity='0.25'">
-                                <span class="mat-label">Cuero</span>
-                                <input type="number" id="leatherPrice" placeholder="0" min="0" value="8000">
-                            </div>
-                            <div class="mat-cell" data-material="METALBAR">
-                                <img id="barsImg" src="" alt="⚒️"
-                                     onerror="this.onerror=null;this.style.opacity='0.25'">
-                                <span class="mat-label">Lingotes</span>
-                                <input type="number" id="barsPrice" placeholder="0" min="0" value="6000">
-                            </div>
-                            <div class="mat-cell" data-material="PLANKS">
-                                <img id="planksImg" src="" alt="🪵"
-                                     onerror="this.onerror=null;this.style.opacity='0.25'">
-                                <span class="mat-label">Tablas</span>
-                                <input type="number" id="planksPrice" placeholder="0" min="0">
-                            </div>
-                            <div class="mat-cell" data-material="CLOTH">
-                                <img id="clothImg" src="" alt="🧵"
-                                     onerror="this.onerror=null;this.style.opacity='0.25'">
-                                <span class="mat-label">Tela</span>
-                                <input type="number" id="clothPrice" placeholder="0" min="0">
-                            </div>
-                            <div class="mat-cell" data-material="artifact">
-                                <img id="artifactImg" src="" alt="🔮"
-                                     onerror="this.onerror=null;this.style.opacity='0.25'">
-                                <span class="mat-label">Artefacto</span>
-                                <input type="number" id="artifactPrice" placeholder="0" min="0">
-                            </div>
-                            <div class="mat-cell" data-material="AVALONIANENERGY">
-                                <i class="bi bi-lightning-fill" style="font-size:1.3rem;color:#FFD700;"></i>
-                                <span class="mat-label">Energía</span>
-                                <input type="number" id="energyPrice" placeholder="0" min="0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Separador vertical -->
-                    <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch;flex-shrink:0;"></div>
-
-                    <!-- Columna derecha: precio de venta + journals -->
-                    <div style="display:flex;flex-direction:row;gap:28px;flex-wrap:wrap;align-items:flex-start;flex:0 0 auto;">
-
-                        <!-- Precio de venta -->
-                        <div>
-                            <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Precio de Venta</div>
-                            <div class="sell-price-row">
-                                <i class="bi bi-currency-exchange sell-price-icon"></i>
-                                <input type="number" id="itemPrice" class="form-control sell-price-input" placeholder="0"
-                                       min="0" value="95000">
-                                <span id="qualityBadge" class="quality-badge" style="display:none;">—</span>
-                            </div>
-                            <div id="cityPriceChips" class="city-chips"></div>
-                        </div>
-
-                        <!-- Journals -->
-                        <div>
-                            <div style="font-size:0.6rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;"><i class="bi bi-journal-text"></i> Journals</div>
-                            <div class="d-flex align-items-center gap-2">
-                                <div style="display:flex;flex-direction:column;gap:2px;">
-                                    <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Vacío</span>
-                                    <input type="number" id="journalBuyPrice" class="form-control form-control-sm" placeholder="0"
-                                           min="0" value="15000" style="width:110px;flex:none;">
-                                </div>
-                                <div style="display:flex;flex-direction:column;gap:2px;">
-                                    <span style="font-size:0.58rem;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;">Lleno</span>
-                                    <input type="number" id="journalSellPrice" class="form-control form-control-sm" placeholder="0"
-                                           min="0" value="32000" style="width:110px;flex:none;">
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <button id="calculate" class="calculate-btn">
-                    <i class="bi bi-graph-up-arrow"></i> CALCULAR PROFIT
+                <button class="cp-add-fab" id="addPanelFab" title="Nuevo panel de crafteo">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>Nuevo panel</span>
                 </button>
-            </div>
-
-            <div id="results" class="results-card p-4" style="display: none;">
-                <h3 class="section-title"><i class="bi bi-bar-chart-line-fill"></i> Análisis de Rentabilidad</h3>
-
-                <div id="itemName" class="text-center mb-4 fs-3 text-warning"></div>
-
-                <!-- Lista de Compra -->
-                <div class="mb-4">
-                    <div style="border-left: 3px solid var(--primary-gold); background: rgba(0,0,0,0.25); border-radius:10px; padding:12px 14px;">
-                        <div class="text-warning mb-2" style="font-size:0.75rem;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;"><i class="bi bi-cart4"></i> Lista de Compra</div>
-                        <table style="width:100%;border-collapse:collapse;">
-                            <thead>
-                                <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
-                                    <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:left;" colspan="2">Material</th>
-                                    <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:right;">Cantidad</th>
-                                    <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:right;">Precio c/u</th>
-                                    <th style="padding:5px 8px;font-size:0.7rem;color:rgba(255,255,255,0.5);font-weight:500;text-align:right;">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="shoppingList"></tbody>
-                        </table>
-                        <div id="excessInfo" class="mt-2 text-center" style="display:none"></div>
-                    </div>
-                </div>
-
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="stat-card cost">
-                            <h5 class="text-danger mb-3"><i class="bi bi-wallet2"></i> Costos</h5>
-                            <div class="mb-2">Costo Total: <span id="totalCost" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Impuestos: <span id="totalTax" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Costo/Item: <span id="costPerItem" class="float-end fw-bold"></span></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="stat-card revenue">
-                            <h5 class="text-success mb-3"><i class="bi bi-graph-up"></i> Ingresos</h5>
-                            <div class="mb-2">Venta Items: <span id="saleRevenue" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Sobrantes: <span id="excessValue" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Total: <span id="totalRevenue" class="float-end fw-bold"></span></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="stat-card journal">
-                            <h5 class="text-info mb-3"><i class="bi bi-journal-text"></i> Journals</h5>
-                            <div class="mb-2">Fama: <span id="baseFame" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Completos: <span id="journalsFilled" class="float-end fw-bold"></span></div>
-                            <div class="mb-2">Profit: <span id="journalsProfit" class="float-end fw-bold"></span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="separator"></div>
-
-                <div class="profit-alert" id="profitAlert">
-                    <h3 class="mb-3"><i class="bi bi-gem"></i> RESULTADO FINAL</h3>
-                    <h1 class="mb-2" id="finalProfit"></h1>
-                    <p class="mb-3 fs-5" id="profitPercentage"></p>
-                    <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
-                        <button id="addToDayBtn" class="btn btn-warning btn-lg">
-                            <i class="bi bi-plus-circle-fill"></i> Agregar al Día
-                        </button>
-                        <button id="saveSnapshotBtn" class="btn btn-outline-warning btn-lg">
-                            <i class="bi bi-bookmark-plus-fill"></i> Guardar en comparación
-                        </button>
-                    </div>
-                </div>
-
-                <div id="recommendations" class="mt-4"></div>
-            </div>
-
             </div> <!-- /craftingTab -->
 
 
@@ -664,6 +384,7 @@
     <script src="js/ImageHelper.js?v=3"></script>
     <script src="js/PriceCache.js?v=3"></script>
     <script src="js/SnapshotManager.js?v=3"></script>
+    <script src="js/CraftPanel.js?v=1"></script>
     <script src="js/AppController.js?v=3"></script>
     <script src="js/SessionPanel.js?v=3"></script>
     <script src="js/CraftingPlan.js?v=1"></script>
@@ -675,20 +396,14 @@
         initDaySession();
         initScannerTab();
 
-        // Sincronizar selector de servidor del tab de refinado con el principal
+        // Sincronizar selector de servidor del tab de refinado
         (function syncRefServerSelector() {
             const refSel = document.getElementById('refServerSelector');
-            const mainSel = document.getElementById('serverSelector');
-            if (!refSel || !mainSel) return;
-            // Inicializar con el valor guardado
+            if (!refSel) return;
             refSel.value = localStorage.getItem('albionServer') || 'AMERICAS';
             refSel.addEventListener('change', function () {
                 uiManager.api.setServer(this.value);
-                mainSel.value = this.value;
                 localStorage.removeItem(PRICE_CACHE_KEY);
-            });
-            mainSel.addEventListener('change', function () {
-                refSel.value = this.value;
             });
         })();
     </script>
