@@ -1795,28 +1795,35 @@ body.canvas-mode #snapshotSidebar {
 }
 body.canvas-mode .day-layout {
     display: block;    /* rompe la grid de 2 columnas */
-    height: 100vh;
-    overflow: hidden;
 }
-body.canvas-mode .day-layout-side {
-    /* Overlay fijo en el lado derecho — sigue siendo accesible en canvas mode */
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 350px;
-    max-height: 100vh;
-    overflow-y: auto;
-    z-index: 800;
-    background: rgba(20,20,30,0.97);
-    border-left: 1px solid rgba(212,175,55,.18);
-    box-shadow: -12px 0 40px rgba(0,0,0,.55);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(212,175,55,.2) transparent;
-}
+/* .day-layout-side se mueve al #craftCanvas vía JS cuando canvas mode está activo.
+   La clase .day-floating maneja los estilos del panel flotante. */
 body.canvas-mode .day-layout-main {
     height: 100vh;
     overflow: hidden;
+}
+
+/* ── Panel día flotante sobre el canvas ─────────────────────────────────── */
+.day-layout-side.day-floating {
+    position: absolute;
+    width: 340px;
+    max-height: none;
+    overflow: visible;
+    z-index: 50;
+    /* Resetear sticky del layout normal */
+    top: auto;
+}
+.day-layout-side.day-floating .day-panel {
+    /* El panel debe mostrarse normalmente; sin scroll interno en canvas */
+    overflow: visible;
+}
+.day-layout-side.day-floating .day-panel-header {
+    cursor: grab;
+    user-select: none;
+    border-radius: 16px 16px 0 0;
+}
+.day-layout-side.day-floating.cp-dragging .day-panel-header {
+    cursor: grabbing;
 }
 body.canvas-mode .main-container {
     max-width: none !important;
@@ -1854,7 +1861,7 @@ body.canvas-mode .craft-canvas-wrap {
     border: none !important;
 }
 body.canvas-mode .cp-add-fab {
-    right: 366px !important;  /* 350px panel + 16px de margen */
+    right: 28px !important;   /* panel día está en el canvas, no en el viewport */
     bottom: 28px !important;
 }
 
