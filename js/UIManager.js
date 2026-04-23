@@ -446,56 +446,50 @@ class UIManager {
     }
 
     /**
-     * Carga precios desde la API
+     * Carga precios desde la API.
+     * Un solo request trae todas las ciudades × calidades 1-2-3 para el ítem.
+     * Calidad y ciudad se auto-detectan con el mejor precio encontrado.
      */
     async loadPricesFromAPI() {
         const loadBtn = document.getElementById('loadPricesBtn');
         if (!loadBtn) return;
 
         try {
-            // Deshabilitar botón
             loadBtn.disabled = true;
             loadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Cargando...';
 
             const config = this.getFormValues();
             const item = this.createItem(config);
 
-            // Las tres operaciones se lanzan en paralelo:
-            // - precios de item + materiales en la ciudad seleccionada
-            // - precios de materiales en todas las ciudades
-            // - precios del ítem en todas las ciudades
-            const [itemResult, , cityResult] = await Promise.allSettled([
-                this.api.updateItemPrices(item, config.city),
+            // Dos operaciones en paralelo:
+            // 1. Mejor precio del ítem: todas las ciudades × calidades 1-2-3 en un solo request
+            // 2. Mejor precio de cada material: todas las ciudades
+            const [itemResult] = await Promise.allSettled([
+                this.api.fetchBestItemPrice(item.getAPIName()),
                 this._loadMaterialCityPrices(item).catch(e =>
                     console.warn('No se pudo obtener precios de materiales multi-ciudad:', e)
                 ),
-                this.api.fetchAllCityPrices(item.getAPIName(), item.quality)
             ]);
 
-            // Actualizar formulario con precios de la ciudad seleccionada
             if (itemResult.status === 'fulfilled') {
-                this._updateFormPrices(item);
-            }
+                const { best, all } = itemResult.value;
+                if (best) {
+                    // Auto-fill precio, calidad y ciudad con el mejor encontrado
+                    document.getElementById('itemPrice').value = best.price;
 
-            // Mostrar chips de ciudad para el ítem
-            if (cityResult.status === 'fulfilled') {
-                const cityPrices = cityResult.value;
-                this._showCityPrices(cityPrices);
-                if (cityPrices.length > 0) {
-                    document.getElementById('itemPrice').value = cityPrices[0].price;
+                    const qualSel = document.getElementById('quality');
+                    if (qualSel) qualSel.value = best.quality;
+                    this._updateQualityBadge(best.quality, best.qualityName);
+
                     const citySelector = document.getElementById('citySelector');
-                    if (citySelector) citySelector.value = cityPrices[0].city;
-                    const chips = document.querySelectorAll('.city-chip');
-                    if (chips.length > 0) chips[0].classList.add('selected');
+                    if (citySelector) citySelector.value = best.city;
                 }
+                this._showCityPrices(all);
             } else {
-                console.warn('No se pudo obtener precios multi-ciudad:', cityResult.reason);
+                console.warn('No se pudo obtener precios del ítem:', itemResult.reason);
             }
 
-            this.showToast('✅ Precios Cargados',
-                `Precios actualizados desde todas las ciudades`);
-
-            // Auto-calcular
+            this.showToast('✅ Precios Cargados', 'Mejor precio auto-detectado entre todas las ciudades y calidades');
             this.calculate();
 
         } catch (error) {
@@ -505,6 +499,23 @@ class UIManager {
             loadBtn.disabled = false;
             loadBtn.innerHTML = '<i class="bi bi-cloud-download-fill"></i> Cargar Precios';
         }
+    }
+
+    /**
+     * Actualiza el badge visual de calidad auto-detectada
+     * @param {number} quality
+     * @param {string} qualityName
+     * @private
+     */
+    _updateQualityBadge(quality, qualityName) {
+        const badge = document.getElementById('qualityBadge');
+        if (!badge) return;
+        const Q_COLORS = { 1: '#aaa', 2: '#7ec85c', 3: '#f0c040', 4: '#4fc3f7', 5: '#ce93d8' };
+        const color = Q_COLORS[quality] || '#aaa';
+        badge.textContent = qualityName || `Q${quality}`;
+        badge.style.color = color;
+        badge.style.borderColor = color;
+        badge.style.display = '';
     }
 
     /**
@@ -555,8 +566,9 @@ class UIManager {
     }
 
     /**
-     * Muestra los precios del ítem por ciudad como chips clickeables
-     * @param {Array} cityPrices - [{city, price}] ordenado desc
+     * Muestra los precios del ítem por ciudad como chips clickeables.
+     * Cada chip muestra ciudad, precio y badge de calidad.
+     * @param {Array} cityPrices - [{city, price, quality, qualityName}] ordenado desc por precio
      */
     _showCityPrices(cityPrices) {
         const container = document.getElementById('cityPriceChips');
@@ -565,16 +577,46 @@ class UIManager {
             container.innerHTML = '<span class="text-muted small">Sin datos de ciudades</span>';
             return;
         }
-        container.innerHTML = cityPrices.map((c, i) => `
-            <button class="city-chip ${i === 0 ? 'best' : ''}" data-city="${c.city}" data-price="${c.price}">
-                ${i === 0 ? '★ ' : ''}<span class="city-name">${c.city}</span>
-                <span class="city-price">${(c.price / 1000).toFixed(1)}K</span>
-            </button>`).join('');
+
+        const Q_COLORS = { 1: '#aaa', 2: '#7ec85c', 3: '#f0c040', 4: '#4fc3f7', 5: '#ce93d8' };
+        const Q_NAMES  = { 1: 'Normal', 2: 'Good', 3: 'Outstanding', 4: 'Excellent', 5: 'Masterpiece' };
+
+        // Colapsar a mejor precio por ciudad (la lista ya viene ordenada desc por precio)
+        const bestPerCity = new Map();
+        for (const c of cityPrices) {
+            if (!bestPerCity.has(c.city)) bestPerCity.set(c.city, c);
+        }
+        const deduped = [...bestPerCity.values()];
+
+        container.innerHTML = deduped.map((c, i) => {
+            const qColor = Q_COLORS[c.quality] || '#aaa';
+            const qName  = c.qualityName || Q_NAMES[c.quality] || '';
+            const qBadge = qName
+                ? `<span style="font-size:.58rem;color:${qColor};border:1px solid ${qColor};border-radius:3px;padding:0 3px;white-space:nowrap;">${qName}</span>`
+                : '';
+            return `
+                <button class="city-chip ${i === 0 ? 'best' : ''}"
+                        data-city="${c.city}" data-price="${c.price}" data-quality="${c.quality || ''}">
+                    ${i === 0 ? '★ ' : ''}<span class="city-name">${c.city}</span>
+                    <span class="city-price">${(c.price / 1000).toFixed(1)}K</span>
+                    ${qBadge}
+                </button>`;
+        }).join('');
+
         container.querySelectorAll('.city-chip').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('itemPrice').value = btn.dataset.price;
+
                 const citySelector = document.getElementById('citySelector');
                 if (citySelector) citySelector.value = btn.dataset.city;
+
+                if (btn.dataset.quality) {
+                    const q = parseInt(btn.dataset.quality);
+                    const qualSel = document.getElementById('quality');
+                    if (qualSel) qualSel.value = q;
+                    this._updateQualityBadge(q, Q_NAMES[q]);
+                }
+
                 container.querySelectorAll('.city-chip').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 this.calculate();

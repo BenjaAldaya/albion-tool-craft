@@ -247,9 +247,64 @@ class AlbionAPI {
     }
 
     /**
-     * Obtiene el precio de venta del ítem en todas las ciudades
-     * @param {string} itemApiName - Nombre del ítem en la API
-     * @param {number} quality - Calidad (1-5)
+     * Obtiene el mejor precio de venta del ítem en todas las ciudades y calidades (1-3)
+     * en un solo request. Aplica sanity check igual que el scanner:
+     *   - Black Market: usa buy_price_max
+     *   - Ciudad normal: si no hay buyers activos se descarta; si sell > buyMax*2 usa buyMax
+     * @param {string} itemApiName
+     * @returns {Promise<{ best: {city,price,quality,qualityName}, all: Array }>}
+     */
+    async fetchBestItemPrice(itemApiName) {
+        const cacheKey = `best|${itemApiName}`;
+        const cached = this._cityPriceCache.get(cacheKey);
+        if (cached && (Date.now() - cached.ts) < this._CITY_CACHE_TTL) {
+            return cached.data;
+        }
+
+        const cities = Object.values(AlbionConfig.CITIES).join(',');
+        const url = `${this.baseURL}/${itemApiName}?locations=${cities}&qualities=1,2,3`;
+
+        const data = await this._deduped(url, () => this._fetchWithRetry(url));
+
+        const Q_NAMES = { 1: 'Normal', 2: 'Good', 3: 'Outstanding', 4: 'Excellent', 5: 'Masterpiece' };
+        const results = [];
+
+        for (const d of data) {
+            const isBM = d.city === 'Black Market';
+            let price;
+
+            if (isBM) {
+                price = d.buy_price_max || 0;
+            } else {
+                if (!d.buy_price_max) continue; // sin compradores activos → mercado muerto
+                const sellMin = d.sell_price_min || 0;
+                // sanity check: sell outlier si es más del doble del buy order
+                price = (sellMin && sellMin <= d.buy_price_max * 2) ? sellMin : d.buy_price_max;
+            }
+
+            if (price <= 0) continue;
+
+            results.push({
+                city:         d.city,
+                price,
+                quality:      d.quality,
+                qualityName:  Q_NAMES[d.quality] || `Q${d.quality}`,
+                isBlackMarket: isBM,
+            });
+        }
+
+        results.sort((a, b) => b.price - a.price);
+
+        const result = { best: results[0] || null, all: results };
+        this._cityPriceCache.set(cacheKey, { data: result, ts: Date.now() });
+        return result;
+    }
+
+    /**
+     * Obtiene el sell_price_min del ítem en todas las ciudades para una calidad fija.
+     * Usado para materiales (que siempre son calidad 1).
+     * @param {string} itemApiName
+     * @param {number} quality
      * @returns {Promise<Array>} [{city, price}] ordenado desc por precio
      */
     async fetchAllCityPrices(itemApiName, quality = 1) {
@@ -271,13 +326,9 @@ class AlbionAPI {
             })
             .map(d => {
                 const isBM = d.city === 'Black Market';
-                return {
-                    city:          d.city,
-                    price:         isBM ? d.buy_price_max : d.sell_price_min,
-                    isBlackMarket: isBM,
-                };
+                return { city: d.city, price: isBM ? d.buy_price_max : d.sell_price_min };
             })
-            .sort((a, b) => b.price - a.price);
+            .sort((a, b) => a.price - b.price); // materiales: más barato primero
 
         this._cityPriceCache.set(cacheKey, { data: result, ts: Date.now() });
         return result;
