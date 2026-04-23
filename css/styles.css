@@ -1799,7 +1799,20 @@ body.canvas-mode .day-layout {
     overflow: hidden;
 }
 body.canvas-mode .day-layout-side {
-    display: none;     /* panel lateral oculto en canvas mode */
+    /* Overlay fijo en el lado derecho — sigue siendo accesible en canvas mode */
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 350px;
+    max-height: 100vh;
+    overflow-y: auto;
+    z-index: 800;
+    background: rgba(20,20,30,0.97);
+    border-left: 1px solid rgba(212,175,55,.18);
+    box-shadow: -12px 0 40px rgba(0,0,0,.55);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212,175,55,.2) transparent;
 }
 body.canvas-mode .day-layout-main {
     height: 100vh;
@@ -1841,7 +1854,7 @@ body.canvas-mode .craft-canvas-wrap {
     border: none !important;
 }
 body.canvas-mode .cp-add-fab {
-    right: 28px !important;
+    right: 366px !important;  /* 350px panel + 16px de margen */
     bottom: 28px !important;
 }
 

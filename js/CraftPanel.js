@@ -582,13 +582,27 @@ class CraftPanel {
 
     _addToDay(analysis) {
         if (typeof dayCrafts === 'undefined') return;
-        const config   = this._currentConfig;
-        const enchTxt  = this._enchant > 0 ? `.${this._enchant}` : '';
-        const keyMap   = { LEATHER: 'leather', METALBAR: 'bars', PLANKS: 'planks', CLOTH: 'cloth', AVALONIANENERGY: 'energy', artifact: 'artifact' };
+        const config  = this._currentConfig;
+        const enchTxt = this._enchant > 0 ? `.${this._enchant}` : '';
 
-        const matMap = {};
-        for (const [k, input] of Object.entries(this._matInputs)) {
-            matMap[k] = { label: k, price: parseFloat(input.value) || 0, neededQty: config.quantity, apiName: '' };
+        const MAT_LABEL = {
+            LEATHER: 'Cuero', METALBAR: 'Barras', PLANKS: 'Tablas',
+            CLOTH: 'Tela', AVALONIANENERGY: 'Energía', artifact: 'Artefacto'
+        };
+
+        // Usar el mismo formato que SessionPanel espera: analysis.materials.toBuy
+        const materials = {};
+        if (analysis.materials?.toBuy) {
+            Object.entries(analysis.materials.toBuy).forEach(([type, mat]) => {
+                if ((mat.quantity || 0) <= 0) return;
+                materials[type] = {
+                    label:     MAT_LABEL[type] || type,
+                    quantity:  mat.quantity,
+                    neededQty: analysis.materials.needed?.[type]?.quantity || 0,
+                    price:     mat.price || 0,
+                    apiName:   mat.apiName || '',
+                };
+            });
         }
 
         dayCrafts.unshift({
@@ -612,7 +626,7 @@ class CraftPanel {
             journalsProfit:   analysis.journals?.profit || 0,
             journalsFilled:   analysis.journals?.journalsComplete || 0,
             savedAt:          new Date().toLocaleTimeString(),
-            materials:        matMap,
+            materials,
         });
 
         if (typeof _saveDayCrafts  === 'function') _saveDayCrafts();
