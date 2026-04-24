@@ -2055,13 +2055,14 @@ body.canvas-mode .cp-add-fab {
     margin-left: 3px;
 }
 .cp-enchant {
-    width: 44px;
+    width: 50px;
     background: rgba(0,0,0,.3);
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
     border-radius: 5px;
     color: #fff;
-    font-size: .76rem;
-    padding: 3px 4px;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 5px 4px;
     text-align: center;
 }
 .cp-enchant:focus { outline: none; border-color: var(--primary-gold); }
@@ -2098,19 +2099,20 @@ body.canvas-mode .cp-add-fab {
 .cp-params { display: flex; gap: 5px; flex-shrink: 0; }
 .cp-field  { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .cp-field label {
-    font-size: .53rem;
-    color: rgba(255,255,255,.38);
+    font-size: .65rem;
+    color: rgba(255,255,255,.5);
     text-transform: uppercase;
     letter-spacing: .3px;
 }
 .cp-field input[type=number] {
-    width: 50px;
+    width: 62px;
     background: rgba(0,0,0,.3);
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 6px;
     color: #fff;
-    font-size: .73rem;
-    padding: 3px 4px;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 5px 6px;
     text-align: center;
 }
 .cp-field input[type=number]:focus { outline: none; border-color: var(--primary-gold); }
@@ -2149,21 +2151,21 @@ body.canvas-mode .cp-add-fab {
 .cp-mat-cell:hover { border-color: rgba(212,175,55,.22); }
 .cp-mat-cell img    { width: 36px; height: 36px; object-fit: contain; border-radius: 5px; }
 .cp-mat-label {
-    font-size: .53rem;
-    color: rgba(255,255,255,.35);
+    font-size: .62rem;
+    color: rgba(255,255,255,.45);
     text-transform: uppercase;
     letter-spacing: .3px;
     text-align: center;
 }
 .cp-mat-price {
-    width: 64px;
+    width: 68px;
     background: rgba(0,0,0,.3);
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 5px;
     color: #f0c040;
-    font-size: .69rem;
+    font-size: .82rem;
     font-weight: 700;
-    padding: 3px;
+    padding: 5px 4px;
     text-align: center;
 }
 .cp-mat-price:focus { outline: none; border-color: var(--primary-gold); background: rgba(212,175,55,.07); }
@@ -2296,17 +2298,46 @@ body.canvas-mode .cp-add-fab {
 /* ── Result card ── */
 .cp-result-card {
     border-radius: 10px;
-    padding: 9px 11px;
+    padding: 10px 12px;
 }
 .cp-result-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 7px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 .cp-stat { display: flex; flex-direction: column; gap: 2px; }
-.cp-stat span   { font-size: .58rem; color: rgba(255,255,255,.38); text-transform: uppercase; letter-spacing: .3px; }
-.cp-stat strong { font-size: .86rem; }
+.cp-stat span   { font-size: .62rem; color: rgba(255,255,255,.42); text-transform: uppercase; letter-spacing: .3px; }
+.cp-stat strong { font-size: .92rem; }
+
+.cp-result-divider {
+    height: 1px;
+    background: rgba(255,255,255,.07);
+    margin: 8px 0;
+}
+.cp-result-mats {
+    margin-bottom: 8px;
+}
+.cp-result-mats-title {
+    font-size: .6rem;
+    color: rgba(255,255,255,.35);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 5px;
+}
+.cp-result-mat-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.cp-result-mat-row:last-child { border-bottom: none; }
+.cp-result-mat-row img { width: 20px; height: 20px; object-fit: contain; border-radius: 3px; opacity: .85; }
+.cp-result-mat-name { flex: 1; font-size: .72rem; color: rgba(255,255,255,.65); }
+.cp-result-mat-qty  { font-size: .72rem; color: #f0c040; font-weight: 700; min-width: 40px; text-align: right; }
+.cp-result-mat-price { font-size: .68rem; color: rgba(255,255,255,.4); min-width: 48px; text-align: right; }
+.cp-result-mat-total { font-size: .72rem; color: #e87676; font-weight: 600; min-width: 52px; text-align: right; }
 
 .cp-add-day {
     width: 100%;

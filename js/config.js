@@ -55,6 +55,30 @@ const AlbionConfig = {
         8: 58600
     },
 
+    // ─── IMPUESTO DE CRAFTING (nutrición de puesto de trabajo) ───────────────────
+    // Fórmula: taxPerItem = usageFee% × materialCount × 1.125 × 2^(tier-4) × 2^(enchant) × artMult
+    // El factor 1.125 convierte conteo de materiales a nutrición base.
+    // Fuente: forum.albiononline.com/index.php/Thread/167434
+
+    // Multiplicadores por tipo de artefacto (basado en item value del juego)
+    ARTIFACT_MULT: {
+        none:      1.00,
+        rune:      1.25,   // Keeper artifacts
+        soul:      1.75,   // Morgana artifacts
+        relic:     2.75,   // Undead / Hell / Crystal artifacts
+        avalonian: 4.25,   // Avalonian artifacts
+    },
+
+    // Suffix del artifactKey → tipo de artefacto
+    ARTIFACT_SUFFIX_MAP: {
+        AVALON:  'avalonian',
+        CRYSTAL: 'relic',
+        HELL:    'relic',
+        UNDEAD:  'relic',
+        MORGANA: 'soul',
+        KEEPER:  'rune',
+    },
+
     // ─── HERRAMIENTAS ────────────────────────────────────────────────────────────
         TOOL_RECIPES: {
 

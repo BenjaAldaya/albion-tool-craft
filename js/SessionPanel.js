@@ -48,7 +48,9 @@ function addToDaySession() {
         quantity:     config.quantity,
         city:         config.city,
         returnRate:   config.returnRate,
-        taxRate:      config.taxRate,
+        usageFeePct:  analysis.configuration?.usageFeePct  || 0,
+        taxPerItem:   analysis.configuration?.taxPerItem   || 0,
+        artifactType: analysis.configuration?.artifactType || 'none',
         itemPrice:    parseFloat(document.getElementById('itemPrice')?.value) || 0,
         journalBuyPrice:  config.journalBuyPrice,
         journalSellPrice: config.journalSellPrice,
@@ -220,10 +222,30 @@ function _buildCraftCard(c) {
 
     const rrPct       = Math.round(c.returnRate * 100);
     const qualityName = Q_NAMES[c.quality] || 'Normal';
-    const journalRow  = c.journalsFilled > 0 ? `
+
+    // Costo materiales = suma de subtotales de cada material
+    const matCost = Object.values(c.materials || {}).reduce((s, m) => s + (m.quantity||0)*(m.price||0), 0);
+    const taxTotal   = c.totalCost - matCost;
+    const taxPerItem = c.taxPerItem || (c.quantity > 0 ? taxTotal / c.quantity : 0);
+    const usageFee   = c.usageFeePct || 0;
+
+    const ART_LABEL = { rune: 'Rune', soul: 'Soul', relic: 'Relic', avalonian: 'Avalonian' };
+    const ART_COLOR = { rune: '#a0d080', soul: '#4fc3f7', relic: '#ce93d8', avalonian: '#f0c040' };
+    const artType   = c.artifactType || 'none';
+    const artBadge  = ART_LABEL[artType]
+        ? `<span style="font-size:.6rem;font-weight:700;color:${ART_COLOR[artType]};border:1px solid ${ART_COLOR[artType]};border-radius:3px;padding:0 4px;margin-left:4px;">${ART_LABEL[artType]}</span>`
+        : '';
+
+    const journalBlock = (c.journalBuyPrice > 0 || c.journalSellPrice > 0 || c.journalsFilled > 0) ? `
+        <div class="dc-divider"></div>
+        <div class="dc-section-label"><i class="bi bi-journal-text" style="color:#4fc3f7;"></i> Journals</div>
         <div class="dc-info-row">
-            <span><i class="bi bi-journal-text" style="color:#4fc3f7;"></i> ${c.journalsFilled} journals</span>
-            <span style="color:#4fc3f7;">+${_fmtSilver(c.journalsProfit)}</span>
+            <span>Vacío <strong>${c.journalBuyPrice > 0 ? _fmtSilver(c.journalBuyPrice) : '—'}</strong></span>
+            <span>Lleno <strong style="color:#4fc3f7;">${c.journalSellPrice > 0 ? _fmtSilver(c.journalSellPrice) : '—'}</strong></span>
+        </div>
+        <div class="dc-info-row">
+            <span><i class="bi bi-check-circle" style="color:#4fc3f7;"></i> ${c.journalsFilled} completados</span>
+            <span style="color:#4fc3f7;font-weight:700;">+${_fmtSilver(c.journalsProfit || 0)}</span>
         </div>` : '';
 
     return `
@@ -243,7 +265,7 @@ function _buildCraftCard(c) {
         </div>
         <div class="dc-body">
 
-            <div class="dc-section-label">Materiales</div>
+            <div class="dc-section-label">Materiales a comprar</div>
             <table class="dc-mat-table">
                 <thead><tr>
                     <th></th><th>Material</th>
@@ -256,20 +278,38 @@ function _buildCraftCard(c) {
 
             <div class="dc-divider"></div>
 
+            <div class="dc-section-label">Costos${artBadge}</div>
+            <div class="dc-info-row">
+                <span><i class="bi bi-bag-fill" style="color:#e87676;"></i> Materiales</span>
+                <span style="color:#e87676;font-weight:700;">${_fmtSilver(matCost)}</span>
+            </div>
+            <div class="dc-info-row">
+                <span><i class="bi bi-building"></i> Puesto${usageFee > 0 ? ' '+usageFee+'%' : ''} · ${_fmtSilver(taxPerItem)}/ítem × ${c.quantity}</span>
+                <span style="color:#e87676;">${_fmtSilver(taxTotal)}</span>
+            </div>
+            <div class="dc-info-row" style="border-top:1px solid rgba(255,255,255,.06);padding-top:4px;margin-top:2px;">
+                <span style="font-weight:600;">Inversión total</span>
+                <span style="color:#e87676;font-weight:700;">${_fmtSilver(c.totalCost)}</span>
+            </div>
+
+            <div class="dc-divider"></div>
+
+            <div class="dc-section-label">Ingresos</div>
+            <div class="dc-info-row">
+                <span><i class="bi bi-currency-exchange" style="color:#a0d080;"></i> Venta ítem <strong>${_fmtSilver(c.itemPrice)}</strong> c/u</span>
+                <span style="color:#a0d080;font-weight:700;">${_fmtSilver(c.totalRevenue - (c.journalsProfit||0))}</span>
+            </div>
             <div class="dc-info-row">
                 <span><i class="bi bi-arrow-repeat"></i> Retorno <strong>${rrPct}%</strong></span>
-                <span><i class="bi bi-receipt"></i> Imp. <strong>${c.taxRate.toLocaleString()}</strong></span>
+                <span style="opacity:.55;font-size:.72rem;">materiales recuperados</span>
             </div>
-            <div class="dc-info-row">
-                <span><i class="bi bi-currency-exchange"></i> Venta <strong>${_fmtSilver(c.itemPrice)}</strong></span>
-                <span>Ingreso <strong style="color:#a0d080;">${_fmtSilver(c.totalRevenue)}</strong></span>
-            </div>
-            ${journalRow}
+
+            ${journalBlock}
 
             <div class="dc-divider"></div>
 
             <div class="dc-profit-final" style="color:${profitColor}">
-                <span>Profit</span>
+                <span>Profit total</span>
                 <span>${sign}${Math.round(c.finalProfit).toLocaleString()} <i class="bi bi-coin" style="font-size:.85em;"></i></span>
             </div>
             <div class="dc-profit-pct" style="color:${profitColor}">${(c.profitPct ?? 0).toFixed(1)}% margen</div>

@@ -90,9 +90,9 @@ class CraftPanel {
                     <div class="cp-item-meta"></div>
                 </div>
                 <div class="cp-params">
-                    <div class="cp-field"><label>Cant.</label><input type="number" class="cp-quantity" value="10" min="1"></div>
-                    <div class="cp-field"><label>Ret.%</label><input type="number" class="cp-return"   value="45" min="0" max="100"></div>
-                    <div class="cp-field"><label>Imp.</label> <input type="number" class="cp-tax"      value="450" min="0"></div>
+                    <div class="cp-field"><label>Cant.</label><input type="number" class="cp-quantity"   value="10"  min="1"></div>
+                    <div class="cp-field"><label>Ret.%</label><input type="number" class="cp-return"     value="45"  min="0" max="100"></div>
+                    <div class="cp-field"><label>Uso%</label><input type="number" class="cp-usage-fee" value="3" min="0" max="100" step="0.5" title="Usage Fee % visible en la estación de crafteo"></div>
                 </div>
             </div>
 
@@ -287,7 +287,7 @@ class CraftPanel {
 
         // Auto-recalc al cambiar inputs manualmente
         this.el.addEventListener('input', (e) => {
-            if (e.target.matches('.cp-sell-price,.cp-quantity,.cp-return,.cp-tax,.cp-journal-buy,.cp-journal-sell,.cp-mat-price')) {
+            if (e.target.matches('.cp-sell-price,.cp-quantity,.cp-return,.cp-usage-fee,.cp-journal-buy,.cp-journal-sell,.cp-mat-price')) {
                 this._debouncedCalc();
             }
         });
@@ -482,9 +482,9 @@ class CraftPanel {
             tier:        this._tier,
             enchantment: this._enchant,
             quality:     2,
-            quantity:    parseInt(this._q('.cp-quantity')?.value)            || 10,
-            returnRate:  (parseFloat(this._q('.cp-return')?.value) || 45)   / 100,
-            taxRate:     parseFloat(this._q('.cp-tax')?.value)               || 450,
+            quantity:    parseInt(this._q('.cp-quantity')?.value)               || 10,
+            returnRate:  (parseFloat(this._q('.cp-return')?.value) || 45)      / 100,
+            usageFeePct: parseFloat(this._q('.cp-usage-fee')?.value)             || 3,
         };
     }
 
@@ -514,7 +514,7 @@ class CraftPanel {
 
             if (!item.getPrice()) { this._q('.cp-result').style.display = 'none'; return; }
 
-            const calc = new CraftingCalculator(item, config.quantity, config.returnRate, config.taxRate,
+            const calc = new CraftingCalculator(item, config.quantity, config.returnRate, config.usageFeePct,
                 { sellTaxRate: 0.065, buyOrderFee: 0, premiumFame: true });
 
             const jBuy  = parseFloat(this._q('.cp-journal-buy')?.value)  || 0;
@@ -545,10 +545,60 @@ class CraftPanel {
         const sign    = isPos ? '+' : '';
         const fmt = v => {
             const a = Math.abs(v);
-            if (a >= 1e6) return (v/1e6).toFixed(2)+'M';
-            if (a >= 1e3) return (v/1e3).toFixed(1)+'K';
-            return Math.round(v).toLocaleString();
+            const neg = v < 0;
+            let s;
+            if (a >= 1e6) s = (a/1e6).toFixed(2)+'M';
+            else if (a >= 1e3) s = (a/1e3).toFixed(1)+'K';
+            else s = Math.round(a).toLocaleString();
+            return (neg ? '-' : '') + s;
         };
+
+        const RENDER = 'https://render.albiononline.com/v1/item/';
+        const MAT_LABEL = {
+            LEATHER: 'Cuero', METALBAR: 'Barras', PLANKS: 'Tablas',
+            CLOTH: 'Tela', AVALONIANENERGY: 'Energía', artifact: 'Artefacto'
+        };
+
+        // Filas de materiales a comprar
+        const matRows = Object.entries(analysis.materials?.toBuy || {})
+            .filter(([, m]) => (m.quantity || 0) > 0)
+            .map(([type, m]) => {
+                const renderName = (m.apiName || '').replace(/@(\d)$/, '_LEVEL$1');
+                const subtotal   = (m.quantity || 0) * (m.price || 0);
+                const label      = MAT_LABEL[type] || type;
+                return `<div class="cp-result-mat-row">
+                    <img src="${RENDER}${renderName}.png?size=40" onerror="this.style.display='none'">
+                    <span class="cp-result-mat-name">${label}</span>
+                    <span class="cp-result-mat-qty">×${(m.quantity||0).toLocaleString()}</span>
+                    <span class="cp-result-mat-price">${m.price > 0 ? fmt(m.price) : '—'}</span>
+                    <span class="cp-result-mat-total">${subtotal > 0 ? fmt(subtotal) : '—'}</span>
+                </div>`;
+            }).join('');
+
+        const jProfit    = analysis.journals?.profit || 0;
+        const jFilled    = analysis.journals?.journalsComplete || 0;
+        const jBuyPrice  = parseFloat(this._q('.cp-journal-buy')?.value)  || 0;
+        const jSellPrice = parseFloat(this._q('.cp-journal-sell')?.value) || 0;
+        const journalBlock = (jFilled > 0 || jBuyPrice > 0) ? `
+            <div class="cp-result-divider"></div>
+            <div class="cp-result-stats" style="margin-bottom:0;">
+                <div class="cp-stat">
+                    <span><i class="bi bi-journal-text" style="color:#4fc3f7;"></i> Journals llenos</span>
+                    <strong style="color:#4fc3f7;">${jFilled}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Profit journals</span>
+                    <strong style="color:#4fc3f7;">+${fmt(jProfit)}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Compra vacío</span>
+                    <strong>${jBuyPrice > 0 ? fmt(jBuyPrice) : '—'}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Venta lleno</span>
+                    <strong>${jSellPrice > 0 ? fmt(jSellPrice) : '—'}</strong>
+                </div>
+            </div>` : '';
 
         const result = this._q('.cp-result');
         result.style.display = '';
@@ -556,15 +606,31 @@ class CraftPanel {
         <div class="cp-result-card" style="background:${bg};border:1px solid ${border};">
             <div class="cp-result-stats">
                 <div class="cp-stat">
-                    <span>Profit</span>
-                    <strong style="color:${color};font-size:1rem;">${sign}${fmt(profit)}</strong>
+                    <span>Profit total</span>
+                    <strong style="color:${color};font-size:1.05rem;">${sign}${fmt(profit)}</strong>
                 </div>
                 <div class="cp-stat">
                     <span>Margen</span>
-                    <strong style="color:${color};">${sign}${pct.toFixed(1)}%</strong>
+                    <strong style="color:${color};font-size:1.05rem;">${sign}${pct.toFixed(1)}%</strong>
                 </div>
                 <div class="cp-stat">
-                    <span>Costo unit.</span>
+                    <span>Ingreso venta</span>
+                    <strong style="color:#a0d080;">${fmt(analysis.revenue.saleRevenue)}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Ingreso total</span>
+                    <strong style="color:#a0d080;">${fmt(analysis.revenue.totalRevenue)}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Costo materiales</span>
+                    <strong style="color:#e87676;">${fmt(analysis.costs.materialsCost)}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Impuesto total</span>
+                    <strong style="color:#e87676;">${fmt(analysis.costs.totalTax)}</strong>
+                </div>
+                <div class="cp-stat">
+                    <span>Costo por ítem</span>
                     <strong>${fmt(analysis.costs.costPerItem)}</strong>
                 </div>
                 <div class="cp-stat">
@@ -572,6 +638,23 @@ class CraftPanel {
                     <strong>${fmt(analysis.costs.totalCost)}</strong>
                 </div>
             </div>
+
+            ${matRows ? `
+            <div class="cp-result-divider"></div>
+            <div class="cp-result-mats">
+                <div class="cp-result-mats-title"><i class="bi bi-cart3"></i> Materiales a comprar</div>
+                <div style="display:flex;justify-content:space-between;font-size:.58rem;color:rgba(255,255,255,.28);padding:0 2px 3px;text-transform:uppercase;letter-spacing:.3px;">
+                    <span style="flex:1">Material</span>
+                    <span style="min-width:40px;text-align:right">Cant.</span>
+                    <span style="min-width:48px;text-align:right">c/u</span>
+                    <span style="min-width:52px;text-align:right">Total</span>
+                </div>
+                ${matRows}
+            </div>` : ''}
+
+            ${journalBlock}
+
+            <div class="cp-result-divider"></div>
             <button class="cp-add-day">
                 <i class="bi bi-plus-circle-fill"></i> Agregar al día
             </button>
@@ -615,7 +698,9 @@ class CraftPanel {
             quantity:         config.quantity,
             city:             'Caerleon',
             returnRate:       config.returnRate,
-            taxRate:          config.taxRate,
+            usageFeePct:      config.usageFeePct,
+            taxPerItem:       analysis.configuration?.taxPerItem || 0,
+            artifactType:     analysis.configuration?.artifactType || 'none',
             itemPrice:        parseFloat(this._q('.cp-sell-price')?.value) || 0,
             journalBuyPrice:  parseFloat(this._q('.cp-journal-buy')?.value)  || 0,
             journalSellPrice: parseFloat(this._q('.cp-journal-sell')?.value) || 0,

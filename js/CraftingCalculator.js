@@ -6,17 +6,17 @@ class CraftingCalculator {
      * @param {Item} item - Item a craftear
      * @param {number} quantity - Cantidad a craftear
      * @param {number} returnRate - Tasa de retorno de recursos (0-1)
-     * @param {number} taxRate - Impuesto por item crafteado (flat, en gold)
+     * @param {number} taxPerItem - Impuesto por ítem en plata (Usage Fee del juego ÷ cantidad)
      * @param {Object} options - Opciones de mercado
      * @param {number} options.sellTaxRate - Tasa de impuesto al vender (ej: 0.065 premium, 0.105 no-premium)
      * @param {number} options.buyOrderFee - Fee de compra via buy order (ej: 0.025)
      * @param {boolean} options.premiumFame - Si el jugador tiene premium (+50% fama)
      */
-    constructor(item, quantity = 1, returnRate = 0.48, taxRate = 350, options = {}) {
+    constructor(item, quantity = 1, returnRate = 0.48, usageFeePct = 3, options = {}) {
         this.item = item;
         this.quantity = quantity;
         this.returnRate = returnRate;
-        this.taxRate = taxRate;
+        this.usageFeePct = usageFeePct;
         this.journalManager = null;
         this.sellTaxRate = options.sellTaxRate ?? 0;
         this.buyOrderFee = options.buyOrderFee ?? 0;
@@ -50,12 +50,28 @@ class CraftingCalculator {
         this.returnRate = returnRate;
     }
 
-    /**
-     * Establece el impuesto
-     * @param {number} taxRate
-     */
-    setTaxRate(taxRate) {
-        this.taxRate = taxRate;
+    setUsageFeePct(usageFeePct) { this.usageFeePct = usageFeePct; }
+
+    _getArtifactType() {
+        const key = this.item.recipe?.artifactKey;
+        if (!key) return 'none';
+        for (const [suffix, type] of Object.entries(AlbionConfig.ARTIFACT_SUFFIX_MAP || {})) {
+            if (key.endsWith(suffix)) return type;
+        }
+        return 'relic';
+    }
+
+    // Fórmula: usageFee% × materialesBase × 1.125 × 2^(tier-4) × 2^(enchant) × artMult
+    calculateTaxPerItem() {
+        const recipe = this.item.recipe;
+        if (!recipe) return 0;
+        const matCount = Object.entries(recipe.materials)
+            .filter(([k]) => k !== 'artifact')
+            .reduce((s, [, v]) => s + v, 0);
+        const tierMult = Math.pow(2, (this.item.tier || 4) - 4);
+        const enchMult = Math.pow(2, this.item.enchantment || 0);
+        const artMult  = (AlbionConfig.ARTIFACT_MULT || {})[this._getArtifactType()] ?? 1;
+        return this.usageFeePct * matCount * 1.125 * tierMult * enchMult * artMult;
     }
 
     /**
@@ -102,7 +118,7 @@ class CraftingCalculator {
      * @returns {number}
      */
     calculateTotalTax() {
-        return this.taxRate * this.quantity;
+        return this.calculateTaxPerItem() * this.quantity;
     }
 
     /**
@@ -237,10 +253,12 @@ class CraftingCalculator {
         return {
             item: this.item.toJSON(),
             configuration: {
-                quantity: this.quantity,
-                returnRate: this.returnRate,
+                quantity:     this.quantity,
+                returnRate:   this.returnRate,
                 returnRatePercentage: (this.returnRate * 100).toFixed(0),
-                taxRate: this.taxRate
+                usageFeePct:  this.usageFeePct,
+                taxPerItem:   this.calculateTaxPerItem(),
+                artifactType: this._getArtifactType(),
             },
             materials: materialsData,
             costs: {
