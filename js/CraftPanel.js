@@ -75,9 +75,9 @@ class CraftPanel {
                 </div>
                 <div class="cp-tier-row">
                     ${tiers}
-                    <div class="cp-enc-wrap">
-                        <span>ENC</span>
-                        <input type="number" class="cp-enchant" value="${this._enchant}" min="0" max="4">
+                    <div class="cp-enc-wrap" title="Nivel de encantamiento (.0 a .4)">
+                        <span>·</span>
+                        <input type="number" class="cp-enchant" value="${this._enchant}" min="0" max="4" placeholder="0">
                     </div>
                 </div>
             </div>
@@ -92,7 +92,11 @@ class CraftPanel {
                 <div class="cp-params">
                     <div class="cp-field"><label>Cant.</label><input type="number" class="cp-quantity"   value="10"  min="1"></div>
                     <div class="cp-field"><label>Ret.%</label><input type="number" class="cp-return"     value="45"  min="0" max="100"></div>
-                    <div class="cp-field"><label>Uso%</label><input type="number" class="cp-usage-fee" value="3" min="0" max="100" step="0.5" title="Usage Fee % visible en la estación de crafteo"></div>
+                    <div class="cp-field cp-field--hint">
+                        <label>Uso% <i class="bi bi-info-circle cp-hint-icon"></i></label>
+                        <input type="number" class="cp-usage-fee" value="3" min="0" max="100" step="0.5">
+                        <span class="cp-field-hint">Ver en la estación</span>
+                    </div>
                 </div>
             </div>
 
@@ -137,8 +141,7 @@ class CraftPanel {
 
             <!-- Botones de acción -->
             <div class="cp-actions" style="display:none;">
-                <button class="cp-load-btn"><i class="bi bi-cloud-download-fill"></i> Cargar Precios</button>
-                <button class="cp-calc-btn"><i class="bi bi-graph-up-arrow"></i> Calcular</button>
+                <button class="cp-load-btn"><i class="bi bi-cloud-download-fill"></i> Cargar precios de mercado</button>
             </div>
 
             <!-- Resultado -->
@@ -277,7 +280,6 @@ class CraftPanel {
         });
 
         this._q('.cp-load-btn').addEventListener('click', () => this._loadPrices());
-        this._q('.cp-calc-btn').addEventListener('click', () => this._calculate());
     }
 
     _bindFocus() {
@@ -642,14 +644,19 @@ class CraftPanel {
             ${matRows ? `
             <div class="cp-result-divider"></div>
             <div class="cp-result-mats">
-                <div class="cp-result-mats-title"><i class="bi bi-cart3"></i> Materiales a comprar</div>
-                <div style="display:flex;justify-content:space-between;font-size:.58rem;color:rgba(255,255,255,.28);padding:0 2px 3px;text-transform:uppercase;letter-spacing:.3px;">
-                    <span style="flex:1">Material</span>
-                    <span style="min-width:40px;text-align:right">Cant.</span>
-                    <span style="min-width:48px;text-align:right">c/u</span>
-                    <span style="min-width:52px;text-align:right">Total</span>
+                <button class="cp-result-mats-toggle" type="button">
+                    <i class="bi bi-cart3"></i> Materiales a comprar
+                    <i class="bi bi-chevron-down cp-mats-chevron" style="margin-left:auto;font-size:.6rem;transition:transform .2s;"></i>
+                </button>
+                <div class="cp-result-mats-body">
+                    <div style="display:flex;justify-content:space-between;font-size:.58rem;color:rgba(255,255,255,.28);padding:0 2px 4px;text-transform:uppercase;letter-spacing:.3px;">
+                        <span style="flex:1">Material</span>
+                        <span style="min-width:40px;text-align:right">Cant.</span>
+                        <span style="min-width:48px;text-align:right">c/u</span>
+                        <span style="min-width:52px;text-align:right">Total</span>
+                    </div>
+                    ${matRows}
                 </div>
-                ${matRows}
             </div>` : ''}
 
             ${journalBlock}
@@ -661,6 +668,17 @@ class CraftPanel {
         </div>`;
 
         result.querySelector('.cp-add-day').addEventListener('click', () => this._addToDay(analysis));
+
+        const toggle = result.querySelector('.cp-result-mats-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                const body    = toggle.nextElementSibling;
+                const chevron = toggle.querySelector('.cp-mats-chevron');
+                const open    = body.style.display !== 'none';
+                body.style.display    = open ? 'none' : '';
+                chevron.style.transform = open ? 'rotate(-90deg)' : '';
+            });
+        }
     }
 
     _addToDay(analysis) {

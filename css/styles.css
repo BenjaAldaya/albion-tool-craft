@@ -1898,8 +1898,8 @@ body.canvas-mode .cp-add-fab {
 /* ── Panel ── */
 .craft-panel {
     position: absolute;
-    width: 480px;
-    min-height: 120px;   /* asegura un tamaño visible mínimo en estado vacío */
+    width: 520px;
+    min-height: 120px;
     background: #1e1e2e;
     border: 1px solid rgba(212,175,55,.22);
     border-radius: 14px;
@@ -2118,6 +2118,8 @@ body.canvas-mode .cp-add-fab {
 .cp-field input[type=number]:focus { outline: none; border-color: var(--primary-gold); }
 .cp-field input[type=number]::-webkit-inner-spin-button,
 .cp-field input[type=number]::-webkit-outer-spin-button { opacity: .3; }
+.cp-hint-icon { font-size: .55rem; color: rgba(255,255,255,.3); vertical-align: middle; margin-left: 1px; }
+.cp-field-hint { font-size: .52rem; color: rgba(212,175,55,.45); white-space: nowrap; margin-top: 1px; }
 
 /* ── Prices area — apilado vertical ── */
 .cp-prices-area {
@@ -2127,11 +2129,11 @@ body.canvas-mode .cp-add-fab {
 }
 .cp-mats-col { width: 100%; }
 .cp-section-label {
-    font-size: .58rem;
-    color: rgba(255,255,255,.35);
+    font-size: .65rem;
+    color: rgba(255,255,255,.45);
     text-transform: uppercase;
     letter-spacing: .5px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
 /* Material grid */
@@ -2141,11 +2143,11 @@ body.canvas-mode .cp-add-fab {
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    width: 70px;
+    width: 76px;
     background: rgba(0,0,0,.2);
     border: 1px solid rgba(255,255,255,.07);
     border-radius: 8px;
-    padding: 6px 4px;
+    padding: 7px 5px;
     transition: border-color .13s;
 }
 .cp-mat-cell:hover { border-color: rgba(212,175,55,.22); }
@@ -2158,7 +2160,7 @@ body.canvas-mode .cp-add-fab {
     text-align: center;
 }
 .cp-mat-price {
-    width: 68px;
+    width: 70px;
     background: rgba(0,0,0,.3);
     border: 1px solid rgba(255,255,255,.15);
     border-radius: 5px;
@@ -2292,8 +2294,7 @@ body.canvas-mode .cp-add-fab {
 .cp-calc-btn:hover:not(:disabled) { opacity: .84; transform: translateY(-1px); }
 .cp-load-btn:disabled,
 .cp-calc-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-.cp-load-btn { background: #4FC3F7; color: #000; }
-.cp-calc-btn { background: var(--primary-gold); color: #000; }
+.cp-load-btn { background: #4FC3F7; color: #000; font-size: .8rem; }
 
 /* ── Result card ── */
 .cp-result-card {
@@ -2318,13 +2319,23 @@ body.canvas-mode .cp-add-fab {
 .cp-result-mats {
     margin-bottom: 8px;
 }
-.cp-result-mats-title {
-    font-size: .6rem;
-    color: rgba(255,255,255,.35);
+.cp-result-mats-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 3px 0 5px;
+    font-size: .65rem;
+    font-weight: 700;
+    color: rgba(255,255,255,.45);
     text-transform: uppercase;
     letter-spacing: .5px;
-    margin-bottom: 5px;
+    cursor: pointer;
+    transition: color .13s;
 }
+.cp-result-mats-toggle:hover { color: rgba(255,255,255,.7); }
 .cp-result-mat-row {
     display: flex;
     align-items: center;
