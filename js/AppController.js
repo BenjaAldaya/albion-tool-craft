@@ -68,9 +68,9 @@ function loadSnapshot(snap) {
         console.warn('[Snapshot] Canvas no disponible');
         return;
     }
-    // Abrir un nuevo panel; los datos del snap se podrían pre-rellenar aquí
-    const panel = addCraftPanel({ itemType: snap.itemType });
-    console.info('[Snapshot] Abierto en panel #' + panel.panelId, snap);
+    const panel = addCraftPanel({ itemType: snap.itemType, tier: snap.tier, enchant: snap.enchant });
+    if (panel) panel.applySnap(snap);
+    console.info('[Snapshot] Abierto en panel #' + panel?.panelId, snap);
 }
 
 renderSnapshots();

@@ -151,8 +151,7 @@ class CraftingCalculator {
         }
 
         const baseFame = JournalManager.calculateTotalFame(this.item, this.quantity);
-        const totalFame = this.premiumFame ? baseFame * 1.5 : baseFame;
-        return this.journalManager.calculateJournalAnalysis(totalFame);
+        return this.journalManager.calculateJournalAnalysis(baseFame);
     }
 
     /**

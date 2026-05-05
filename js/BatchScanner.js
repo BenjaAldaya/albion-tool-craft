@@ -188,7 +188,28 @@ class BatchScanner {
 
     // ─── Profit calc ──────────────────────────────────────────────────────────
 
-    _calcProfit(item, itemPricesMap, matPricesMap, returnRate, taxRate, sellTaxRate, quantity = 1) {
+    _calcTaxPerItem(recipe, tier, enchant, usageFeePct) {
+        const matCount = Object.entries(recipe.materials)
+            .filter(([k]) => k !== 'artifact')
+            .reduce((s, [, v]) => {
+                const qty = typeof v === 'object' ? (v[tier] ?? 0) : v;
+                return s + qty;
+            }, 0);
+        const tierMult = Math.pow(2, tier - 4);
+        const enchMult = Math.pow(2, enchant);
+        const artKey   = recipe.artifactKey;
+        let artType    = 'none';
+        if (artKey) {
+            for (const [suffix, type] of Object.entries(AlbionConfig.ARTIFACT_SUFFIX_MAP || {})) {
+                if (artKey.endsWith(suffix)) { artType = type; break; }
+            }
+            if (artType === 'none') artType = 'relic';
+        }
+        const artMult = (AlbionConfig.ARTIFACT_MULT || {})[artType] ?? 1;
+        return usageFeePct * matCount * 1.125 * tierMult * enchMult * artMult;
+    }
+
+    _calcProfit(item, itemPricesMap, matPricesMap, returnRate, usageFeePct, sellTaxRate, quantity = 1) {
         const { key, recipe, tier, enchant } = item;
         const apiName = this._itemApiName(key, tier, enchant);
         if (!apiName) return null;
@@ -240,7 +261,8 @@ class BatchScanner {
         // Black Market = venta instantánea a NPC, sin impuesto de venta
         const effectiveSellTax = sellCity === 'Black Market' ? 0 : sellTaxRate;
 
-        const totalCost  = matCost + taxRate * quantity;
+        const taxPerItem = this._calcTaxPerItem(recipe, tier, enchant, usageFeePct);
+        const totalCost  = matCost + taxPerItem * quantity;
         const unitCost   = totalCost / quantity;
         const revenue    = sellPrice * quantity * (1 - effectiveSellTax);
         const profit     = revenue - totalCost;
@@ -253,7 +275,7 @@ class BatchScanner {
             sellCity, sellPrice,
             quantity,
             matCost, totalCost, unitCost, revenue, profit, profitPct,
-            returnRate, taxRate,
+            returnRate, usageFeePct,
             materials,
         };
     }
@@ -264,7 +286,7 @@ class BatchScanner {
         const {
             quantity     = 1,
             returnRate   = 0.248,
-            taxRate      = 300,
+            usageFeePct  = 3,
             sellTaxRate  = 0.065,
             minProfitPct = -Infinity,
             markets      = Object.values(AlbionConfig.CITIES),
@@ -335,7 +357,7 @@ class BatchScanner {
 
         const results = [];
         for (const item of scanList) {
-            const r = this._calcProfit(item, itemPrices, matPrices, returnRate, taxRate, sellTaxRate, quantity);
+            const r = this._calcProfit(item, itemPrices, matPrices, returnRate, usageFeePct, sellTaxRate, quantity);
             if (r && r.profitPct >= minProfitPct) results.push(r);
         }
         results.sort((a, b) => b.profit - a.profit);
@@ -376,14 +398,14 @@ function initScannerTab() {
 function _getScanConfig() {
     const quantity     = Math.max(1, parseInt(document.getElementById('scanQuantity')?.value ?? 1));
     const returnRate   = parseFloat(document.getElementById('scanReturnRate')?.value ?? 24.8) / 100;
-    const taxRate      = parseFloat(document.getElementById('scanTaxRate')?.value ?? 300);
+    const usageFeePct  = parseFloat(document.getElementById('scanTaxRate')?.value ?? 3);
     const minProfit    = parseFloat(document.getElementById('scanMinProfit')?.value ?? 0);
     const sellTaxEl    = document.querySelector('input[name="scanSellTax"]:checked');
     const sellTaxRate  = parseFloat(sellTaxEl?.value ?? 0.065);
     const minQuality   = parseInt(document.getElementById('scanItemQuality')?.value ?? 1);
     const categories   = [...document.querySelectorAll('.scan-cat-cb:checked')].map(el => el.value);
     const markets      = [...document.querySelectorAll('.scan-market-cb:checked')].map(el => el.value);
-    return { quantity, returnRate, taxRate, minProfitPct: minProfit, sellTaxRate, minQuality, categories, markets };
+    return { quantity, returnRate, usageFeePct, minProfitPct: minProfit, sellTaxRate, minQuality, categories, markets };
 }
 
 async function startScan() {
@@ -410,7 +432,7 @@ async function startScan() {
     try {
         _scanResults = await _scannerInst.scan(
             cfg.categories,
-            { quantity: cfg.quantity, returnRate: cfg.returnRate, taxRate: cfg.taxRate, sellTaxRate: cfg.sellTaxRate, minProfitPct: -Infinity, markets: cfg.markets },
+            { quantity: cfg.quantity, returnRate: cfg.returnRate, usageFeePct: cfg.usageFeePct, sellTaxRate: cfg.sellTaxRate, minProfitPct: -Infinity, markets: cfg.markets },
             (pct, msg) => {
                 fill.style.width = pct + '%';
                 txt.textContent  = msg;
@@ -559,7 +581,7 @@ function addScannerResultToDay(resultIdx) {
         quantity:        r.quantity ?? 1,
         city:            r.sellCity || 'Caerleon',
         returnRate:      r.returnRate,
-        taxRate:         r.taxRate,
+        usageFeePct:     r.usageFeePct,
         itemPrice:       r.sellPrice,
         journalBuyPrice:  0,
         journalSellPrice: 0,

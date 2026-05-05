@@ -114,7 +114,7 @@ function editDayCraft(id) {
         enchant:    craft.enchant,
         qty:        craft.quantity,
         returnRate: craft.returnRate,
-        taxRate:    craft.taxRate,
+        taxRate:    craft.usageFeePct,
         city:       craft.city,
         prices: {
             leather:     craft.materials.LEATHER?.price          || 0,

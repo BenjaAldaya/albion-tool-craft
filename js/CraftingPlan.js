@@ -38,7 +38,7 @@
             return { gross, toBuyFresh: gross - fromStock, fromStock, leftover: stockIn - fromStock };
         }
 
-        const returnedPerCraft = Math.round(basePerItem * returnRate);
+        const returnedPerCraft = Math.floor(basePerItem * returnRate);
         let stock        = stockIn;
         let totalBought  = 0;
 

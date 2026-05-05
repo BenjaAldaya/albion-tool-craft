@@ -132,7 +132,7 @@ class Item {
      * @returns {{ toBuy: number, totalReturned: number, leftover: number }}
      */
     static _simulateIterativeReturn(basePerItem, quantity, returnRate) {
-        const returnedPerCraft = Math.round(basePerItem * returnRate);
+        const returnedPerCraft = Math.floor(basePerItem * returnRate);
         const netCostPerCraft = basePerItem - returnedPerCraft;
 
         let stock = 0;

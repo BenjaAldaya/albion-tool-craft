@@ -55,6 +55,10 @@ class CraftPanel {
             `<button class="cp-tier-btn${t === this._tier ? ' active' : ''}" data-tier="${t}">T${t}</button>`
         ).join('');
 
+        const enchants = [0, 1, 2, 3, 4].map(e =>
+            `<button class="cp-enc-btn${e === this._enchant ? ' active' : ''}" data-enc="${e}">.${e}</button>`
+        ).join('');
+
         return `
         <div class="cp-header">
             <i class="bi bi-grip-vertical cp-grip"></i>
@@ -75,10 +79,7 @@ class CraftPanel {
                 </div>
                 <div class="cp-tier-row">
                     ${tiers}
-                    <div class="cp-enc-wrap" title="Nivel de encantamiento (.0 a .4)">
-                        <span>·</span>
-                        <input type="number" class="cp-enchant" value="${this._enchant}" min="0" max="4" placeholder="0">
-                    </div>
+                    <div class="cp-enc-row">${enchants}</div>
                 </div>
             </div>
 
@@ -261,10 +262,14 @@ class CraftPanel {
             });
         });
 
-        this._q('.cp-enchant').addEventListener('change', (e) => {
-            this._enchant = parseInt(e.target.value) || 0;
-            this._refreshImages();
-            this._debouncedCalc();
+        this._qa('.cp-enc-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this._qa('.cp-enc-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this._enchant = parseInt(btn.dataset.enc);
+                this._refreshImages();
+                this._debouncedCalc();
+            });
         });
     }
 
@@ -313,6 +318,30 @@ class CraftPanel {
         this._q('.cp-q-badge').style.display     = 'none';
 
         this._buildMaterials();
+    }
+
+    // ── Apply Snapshot ───────────────────────────────────────────────────────────
+    applySnap(snap) {
+        if (snap.qty        != null) this._q('.cp-quantity').value  = snap.qty;
+        if (snap.returnRate != null) this._q('.cp-return').value    = snap.returnRate * 100;
+        if (snap.taxRate    != null) this._q('.cp-usage-fee').value = snap.taxRate;
+
+        if (snap.prices) {
+            const MAT_MAP = {
+                leather: 'LEATHER', bars: 'METALBAR', planks: 'PLANKS',
+                cloth: 'CLOTH', artifact: 'artifact', energy: 'AVALONIANENERGY'
+            };
+            for (const [k, matKey] of Object.entries(MAT_MAP)) {
+                if (snap.prices[k] && this._matInputs[matKey]) {
+                    this._matInputs[matKey].value = snap.prices[k];
+                }
+            }
+            if (snap.prices.item)        this._q('.cp-sell-price').value   = snap.prices.item;
+            if (snap.prices.journalBuy)  this._q('.cp-journal-buy').value  = snap.prices.journalBuy;
+            if (snap.prices.journalSell) this._q('.cp-journal-sell').value = snap.prices.journalSell;
+        }
+
+        this._debouncedCalc();
     }
 
     // ── Materials ────────────────────────────────────────────────────────────────

@@ -2046,14 +2046,30 @@ body.canvas-mode .cp-add-fab {
 .cp-tier-btn:hover { border-color: #4FC3F7; color: #4FC3F7; }
 .cp-tier-btn.active { background: #4FC3F7; border-color: #4FC3F7; color: #000; }
 
-.cp-enc-wrap {
+.cp-enc-row {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: .67rem;
-    color: rgba(255,255,255,.4);
+    gap: 3px;
     margin-left: 3px;
 }
+.cp-enc-btn {
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 20px;
+    color: rgba(255,255,255,.45);
+    font-size: .62rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: border-color .11s, background .11s, color .11s;
+    white-space: nowrap;
+}
+.cp-enc-btn:hover { border-color: currentColor; opacity: .9; }
+.cp-enc-btn[data-enc="0"].active { color: #aaa;     border-color: #aaa;     background: rgba(170,170,170,.15); }
+.cp-enc-btn[data-enc="1"].active { color: #7ec85c;  border-color: #7ec85c;  background: rgba(126,200,92,.15);  }
+.cp-enc-btn[data-enc="2"].active { color: #4fc3f7;  border-color: #4fc3f7;  background: rgba(79,195,247,.15);  }
+.cp-enc-btn[data-enc="3"].active { color: #ce93d8;  border-color: #ce93d8;  background: rgba(206,147,216,.15); }
+.cp-enc-btn[data-enc="4"].active { color: #f0c040;  border-color: #f0c040;  background: rgba(240,192,64,.15);  }
 .cp-enchant {
     width: 50px;
     background: rgba(0,0,0,.3);
